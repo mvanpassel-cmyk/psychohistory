@@ -18,8 +18,8 @@
   header{padding:52px 20px 16px;border-bottom:1px solid var(--border);}
   header h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
   header p{color:var(--muted);font-size:13px;margin-top:4px;}
-  .tabs{display:flex;padding:0 20px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;overflow-x:auto;}
-  .tab{padding:14px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+  .tabs{display:flex;padding:0 8px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;overflow-x:auto;}
+  .tab{padding:13px 11px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
   .tab.active{color:var(--accent2);border-bottom-color:var(--accent2);}
   .screen{display:none;padding:20px;}
   .screen.active{display:block;}
@@ -30,27 +30,37 @@
   .feed-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
   .feed-name{font-size:15px;font-weight:700;}
   .feed-count{font-size:11px;color:var(--muted);}
-  .feed-culture  .feed-name{color:var(--culture);}
+  .feed-culture .feed-name{color:var(--culture);}
   .feed-economics .feed-name{color:var(--economics);}
   .feed-politics .feed-name{color:var(--politics);}
-  .feed-science  .feed-name{color:var(--science);}
+  .feed-science .feed-name{color:var(--science);}
   .news-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
   .news-title{font-size:13px;font-weight:500;line-height:1.45;margin-bottom:4px;}
   .news-title a{color:var(--text);text-decoration:none;}
   .news-title a:hover{color:var(--accent2);}
   .news-date{font-size:11px;color:var(--muted);}
-  .spinner{text-align:center;padding:30px;color:var(--muted);font-size:13px;}
-  .err{background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:10px;padding:12px;font-size:13px;color:var(--miss);margin-bottom:8px;}
+  .agenda-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;border-left:3px solid var(--accent);}
+  .agenda-item.culture{border-left-color:var(--culture);}
+  .agenda-item.economics{border-left-color:var(--economics);}
+  .agenda-item.politics{border-left-color:var(--politics);}
+  .agenda-item.science{border-left-color:var(--science);}
+  .agenda-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent2);margin-bottom:6px;}
+  .agenda-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px;}
+  .agenda-desc{font-size:13px;color:var(--muted);line-height:1.4;}
+  .pred-ai{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid var(--accent2);}
+  .pred-ai-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .pred-ai-text{font-size:14px;line-height:1.5;}
+  .pred-ai-meta{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
   textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;margin-top:6px;}
   textarea{resize:none;}
   textarea:focus,select:focus{outline:none;border-color:var(--accent);}
-  .btn{display:flex;align-items:center;justify-content:center;width:100%;padding:14px;border-radius:14px;margin-top:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),#9d4edd);color:white;}
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;margin-top:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),#9d4edd);color:white;}
   .btn:active{opacity:.8;}
-  .btn-ghost{background:var(--surface2);border:1px solid var(--border)!important;color:var(--muted);}
-  .htabs{display:flex;gap:6px;margin-bottom:14px;}
+  .btn-ghost{background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--muted)!important;background:none;}
+  .htabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
   .htab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--muted);}
   .htab.active{background:rgba(124,106,247,.2);border-color:var(--accent);color:var(--accent2);}
-  .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:6px;}
+  .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:4px;}
   .tag-culture  {background:rgba(244,114,182,.15);color:var(--culture);}
   .tag-economics{background:rgba(6,182,212,.15);color:var(--economics);}
   .tag-politics {background:rgba(249,115,22,.15);color:var(--politics);}
@@ -58,6 +68,7 @@
   .pitem{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
   .ptext{font-size:14px;line-height:1.5;margin:8px 0;}
   .pmeta{font-size:11px;color:var(--muted);margin-top:6px;}
+  .ai-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(124,106,247,.2);color:var(--accent2);margin-left:5px;}
   .sbtns{display:flex;gap:8px;margin-top:10px;}
   .sbtn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--muted);}
   .sbtn.hit    {background:rgba(74,222,128,.15);border-color:var(--hit);   color:var(--hit);}
@@ -82,8 +93,25 @@
   .fetch-info{font-size:12px;color:var(--muted);}
   .refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--accent2);}
   .refresh-btn:active{opacity:.7;}
-  .spinning{animation:spin 1s linear infinite;}
+  .spinning{display:inline-block;animation:spin 1s linear infinite;}
   @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  .key-input{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;width:100%;margin-top:6px;}
+  .key-input:focus{outline:none;border-color:var(--accent);}
+  .settings-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .cursor{display:inline-block;width:2px;height:14px;background:var(--accent2);margin-left:2px;animation:blink .7s infinite;vertical-align:middle;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  /* History styles */
+  .week-entry{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;}
+  .week-entry-header{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+  .week-entry-header:active{background:var(--surface2);}
+  .week-entry-title{font-size:15px;font-weight:700;color:var(--text);}
+  .week-entry-sub{font-size:11px;color:var(--muted);margin-top:3px;}
+  .week-entry-chevron{color:var(--muted);font-size:14px;transition:transform .2s;}
+  .week-entry.open .week-entry-chevron{transform:rotate(90deg);}
+  .week-entry-body{display:none;padding:0 16px 16px;}
+  .week-entry.open .week-entry-body{display:block;}
+  .history-section-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+  .ts-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-bottom:6px;}
 </style>
 </head>
 <body>
@@ -93,8 +121,10 @@
 </header>
 <div class="tabs">
   <div class="tab active" onclick="showScreen('news',this)">📡 News</div>
+  <div class="tab" onclick="showScreen('agenda',this)">🗓️ Next Week</div>
   <div class="tab" onclick="showScreen('predict',this)">🔮 Predict</div>
   <div class="tab" onclick="showScreen('review',this)">🔍 Review</div>
+  <div class="tab" onclick="showScreen('history',this)">📚 History</div>
   <div class="tab" onclick="showScreen('stats',this)">📊 Stats</div>
 </div>
 
@@ -109,9 +139,27 @@
   </div>
 </div>
 
+<!-- NEXT WEEK AGENDA -->
+<div class="screen" id="screen-agenda">
+  <div class="fetch-bar">
+    <span class="fetch-info" id="agenda-info">Key issues &amp; events coming up</span>
+    <button class="refresh-btn" id="agenda-btn" onclick="generateAgenda()">✨ Generate</button>
+  </div>
+  <div id="agenda-container">
+    <div class="empty"><div class="i">🗓️</div>Tap Generate to see what's on the agenda next week</div>
+  </div>
+</div>
+
 <!-- PREDICT -->
 <div class="screen" id="screen-predict">
-  <div class="wlabel" id="wklabel">This week</div>
+  <div class="fetch-bar">
+    <span class="fetch-info" id="pred-info">AI-generated predictions</span>
+    <button class="refresh-btn" id="gen-btn" onclick="generatePredictions()">🤖 Generate</button>
+  </div>
+  <div id="ai-predictions">
+    <div class="empty"><div class="i">🤖</div>Tap Generate to create AI predictions from your feeds</div>
+  </div>
+  <div class="divider">Add your own prediction</div>
   <div class="htabs">
     <div class="htab active" onclick="setH('week',this)">Next week</div>
     <div class="htab" onclick="setH('month',this)">Next month</div>
@@ -126,11 +174,11 @@
       <option value="science">🟣 Science &amp; Technology</option>
     </select>
     <div class="ctitle" style="margin-top:14px">Your prediction</div>
-    <textarea id="ptxt" rows="4" placeholder="Be specific — the more concrete, the easier to score later."></textarea>
+    <textarea id="ptxt" rows="3" placeholder="Write your own prediction..."></textarea>
     <button class="btn" onclick="savePred()">💾 Save prediction</button>
   </div>
-  <div class="divider">Saved this week</div>
-  <div id="newlist"><div class="empty"><div class="i">🔮</div>No predictions yet this week</div></div>
+  <div class="divider">All saved predictions</div>
+  <div id="newlist"><div class="empty"><div class="i">🔮</div>No predictions yet</div></div>
 </div>
 
 <!-- REVIEW -->
@@ -144,6 +192,14 @@
   <div id="rlist"><div class="empty"><div class="i">✅</div>No predictions due for review yet</div></div>
 </div>
 
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div class="wlabel">Weekly archive</div>
+  <div id="history-container">
+    <div class="empty"><div class="i">📚</div>Your weekly history will build up here over time</div>
+  </div>
+</div>
+
 <!-- STATS -->
 <div class="screen" id="screen-stats">
   <div class="wlabel">Accuracy</div>
@@ -154,25 +210,31 @@
   </div>
   <div class="card"><div class="ctitle">By category</div><div id="catstat"></div></div>
   <div class="card"><div class="ctitle">By horizon</div><div id="horstat"></div></div>
-  <button class="btn btn-ghost" style="margin-top:12px" onclick="exportD()">📤 Export to clipboard</button>
+  <div class="divider">Claude API Key</div>
+  <div class="card">
+    <div class="ctitle">Anthropic API key</div>
+    <input class="key-input" type="password" id="api-key" placeholder="sk-ant-..." oninput="saveKey()">
+    <div class="settings-note">Required for AI predictions &amp; agenda. Stored locally only, sent only to Anthropic's API.</div>
+  </div>
+  <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:12px" onclick="exportD()">📤 Export to clipboard</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Feeds config ───────────────────────────────────────────────
+// ── Config ─────────────────────────────────────────────────────
 const FEEDS = [
-  { key:'culture',   label:'🩷 Art & Culture',        url:'https://www.google.com/alerts/feeds/07358569115421849873/6507700123872615525' },
-  { key:'economics', label:'🔵 Economics',             url:'https://www.google.com/alerts/feeds/07358569115421849873/10106271447451997457' },
-  { key:'politics',  label:'🟠 Politics',              url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698350' },
-  { key:'science',   label:'🟣 Science & Technology',  url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698763' },
+  { key:'culture',   label:'🩷 Art & Culture',       url:'https://www.google.com/alerts/feeds/07358569115421849873/6507700123872615525' },
+  { key:'economics', label:'🔵 Economics',            url:'https://www.google.com/alerts/feeds/07358569115421849873/10106271447451997457' },
+  { key:'politics',  label:'🟠 Politics',             url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698350' },
+  { key:'science',   label:'🟣 Science & Technology', url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698763' },
 ];
-// CORS proxy — free, no signup needed
 const PROXY = 'https://corsproxy.io/?';
 
 // ── State ──────────────────────────────────────────────────────
-let P    = JSON.parse(localStorage.getItem('psycho_v3') || '[]');
-let FC   = JSON.parse(localStorage.getItem('psycho_fc')  || '{}');
+let P        = JSON.parse(localStorage.getItem('psycho_v5')       || '[]');
+let FC       = JSON.parse(localStorage.getItem('psycho_fc')        || '{}');
+let SNAPSHOTS= JSON.parse(localStorage.getItem('psycho_snapshots') || '{}'); // keyed by weekId
 let H = 'week', RH = 'week';
 
 // ── Utils ──────────────────────────────────────────────────────
@@ -182,94 +244,255 @@ function wid(d=new Date()){
   return t.getFullYear()+'-W'+Math.ceil((((t-y)/86400000)+1)/7).toString().padStart(2,'0');
 }
 function fmt(iso){return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
-function fmts(iso){return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}
+function fmtFull(iso){return new Date(iso).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
+function fmts(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch{return '';}}
 function dueDate(h,c){const d=new Date(c);if(h==='week')d.setDate(d.getDate()+7);else if(h==='month')d.setMonth(d.getMonth()+1);else d.setFullYear(d.getFullYear()+1);return d;}
 function isDue(p){return new Date()>=dueDate(p.h,p.c);}
-function persist(){localStorage.setItem('psycho_v3',JSON.stringify(P));}
+function persist(){localStorage.setItem('psycho_v5',JSON.stringify(P));}
 function persistFC(){localStorage.setItem('psycho_fc',JSON.stringify(FC));}
+function persistSnap(){localStorage.setItem('psycho_snapshots',JSON.stringify(SNAPSHOTS));}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function getKey(){return document.getElementById('api-key').value.trim()||localStorage.getItem('psycho_key')||'';}
+function saveKey(){localStorage.setItem('psycho_key',document.getElementById('api-key').value.trim());}
 
-// ── RSS fetch via CORS proxy ───────────────────────────────────
-async function fetchFeed(feed) {
-  const res = await fetch(PROXY + encodeURIComponent(feed.url));
-  if (!res.ok) throw new Error('HTTP '+res.status);
-  const txt = await res.text();
-  const xml = new DOMParser().parseFromString(txt, 'application/xml');
-  const entries = [...xml.querySelectorAll('entry')];
-  return entries.slice(0,8).map(e => ({
-    title: (e.querySelector('title')?.textContent || '').replace(/<[^>]+>/g,'').trim(),
-    link:  e.querySelector('link')?.getAttribute('href') || '#',
-    date:  e.querySelector('published')?.textContent || '',
+// ── RSS fetch ──────────────────────────────────────────────────
+async function fetchFeed(feed){
+  const res=await fetch(PROXY+encodeURIComponent(feed.url));
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const txt=await res.text();
+  const xml=new DOMParser().parseFromString(txt,'application/xml');
+  return [...xml.querySelectorAll('entry')].slice(0,8).map(e=>({
+    title:(e.querySelector('title')?.textContent||'').replace(/<[^>]+>/g,'').trim(),
+    link: e.querySelector('link')?.getAttribute('href')||'#',
+    date: e.querySelector('published')?.textContent||'',
   }));
 }
 
-async function fetchAll() {
-  const btn = document.getElementById('refresh-btn');
-  const container = document.getElementById('feeds-container');
-  btn.innerHTML = '<span class="spinning">🔄</span> Fetching…';
-  btn.style.pointerEvents = 'none';
-  container.innerHTML = '<div class="spinner">⏳ Loading your Google Alerts…</div>';
-  let html = '';
-  for (const feed of FEEDS) {
-    try {
-      const items = await fetchFeed(feed);
-      FC[feed.key] = { items, fetched: new Date().toISOString() };
-      html += renderSection(feed, items);
-    } catch(e) {
-      html += `<div class="err">⚠️ ${feed.label}: ${e.message}</div>`;
+async function fetchAll(){
+  const btn=document.getElementById('refresh-btn');
+  const container=document.getElementById('feeds-container');
+  btn.innerHTML='<span class="spinning">🔄</span>';
+  btn.style.pointerEvents='none';
+  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Loading…</div>';
+  let html='';
+  const fetchedAt=new Date().toISOString();
+  const snapshot={fetchedAt,feeds:{}};
+  for(const feed of FEEDS){
+    try{
+      const items=await fetchFeed(feed);
+      FC[feed.key]={items,fetched:fetchedAt};
+      snapshot.feeds[feed.key]=items;
+      html+=renderSection(feed,items);
+    }catch(e){
+      html+=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:10px;padding:12px;font-size:13px;color:var(--miss);margin-bottom:8px;">⚠️ ${feed.label}: ${e.message}</div>`;
     }
   }
   persistFC();
-  container.innerHTML = html || '<div class="empty"><div class="i">😶</div>No items found</div>';
-  document.getElementById('fetch-info').textContent = '🕐 Updated ' + new Date().toLocaleTimeString();
-  btn.innerHTML = '🔄 Refresh';
-  btn.style.pointerEvents = '';
+  // Save snapshot for this week (keep all, not just latest)
+  const currentWid=wid();
+  if(!SNAPSHOTS[currentWid]){
+    SNAPSHOTS[currentWid]={weekId:currentWid,snapshots:[]};
+  }
+  SNAPSHOTS[currentWid].snapshots.push(snapshot);
+  persistSnap();
+  container.innerHTML=html||'<div class="empty"><div class="i">😶</div>No items found</div>';
+  document.getElementById('fetch-info').textContent='🕐 '+fmtFull(fetchedAt);
+  btn.innerHTML='🔄 Refresh';
+  btn.style.pointerEvents='';
   toast('Feeds updated ✓');
 }
 
-function renderSection(feed, items) {
-  const rows = items.map(it => `
+function renderSection(feed,items,compact=false){
+  const rows=items.map(it=>`
     <div class="news-item">
-      <div class="news-title"><a href="${it.link}" target="_blank">${it.title || '(no title)'}</a></div>
-      <div class="news-date">${it.date ? fmts(it.date) : ''}</div>
+      <div class="news-title"><a href="${it.link}" target="_blank">${it.title||'(no title)'}</a></div>
+      <div class="news-date">${it.date?fmts(it.date):''}</div>
     </div>`).join('');
-  return `<div class="feed-section feed-${feed.key}">
-    <div class="feed-header">
-      <span class="feed-name">${feed.label}</span>
-      <span class="feed-count">${items.length} items</span>
-    </div>${rows}
-  </div>`;
+  return`<div class="feed-section feed-${feed.key}">
+    <div class="feed-header"><span class="feed-name">${feed.label}</span><span class="feed-count">${items.length} items</span></div>
+    ${rows}</div>`;
 }
 
-function loadCache() {
-  if (!Object.keys(FC).length) return;
-  let html = '';
-  for (const feed of FEEDS) {
-    if (FC[feed.key]) html += renderSection(feed, FC[feed.key].items);
+function loadCache(){
+  if(!Object.keys(FC).length)return;
+  let html='';
+  for(const feed of FEEDS){if(FC[feed.key])html+=renderSection(feed,FC[feed.key].items);}
+  if(html){
+    document.getElementById('feeds-container').innerHTML=html;
+    const last=FC[FEEDS[0].key]?.fetched;
+    if(last)document.getElementById('fetch-info').textContent='🕐 '+fmtFull(last);
   }
-  if (html) {
-    document.getElementById('feeds-container').innerHTML = html;
-    const last = FC[FEEDS[0].key]?.fetched;
-    if (last) document.getElementById('fetch-info').textContent = '🕐 Updated ' + fmt(last);
+}
+
+// ── Build digest for Claude ────────────────────────────────────
+function buildDigest(){
+  let d='';
+  for(const feed of FEEDS){
+    const items=FC[feed.key]?.items||[];
+    if(!items.length)continue;
+    d+=`\n## ${feed.label}\n`;
+    items.slice(0,5).forEach(it=>{d+=`- ${it.title}\n`;});
   }
+  return d;
+}
+
+// ── Claude API (streaming) ─────────────────────────────────────
+async function callClaude(system,user,onChunk){
+  const key=getKey();
+  if(!key){toast('Add API key in Stats tab first!');throw new Error('No API key');}
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,stream:true,system,messages:[{role:'user',content:user}]})
+  });
+  if(!res.ok){const e=await res.text();throw new Error('API '+res.status+': '+e.slice(0,120));}
+  const reader=res.body.getReader();const decoder=new TextDecoder();let buf='';
+  while(true){
+    const{done,value}=await reader.read();if(done)break;
+    buf+=decoder.decode(value,{stream:true});
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const line of lines){
+      if(!line.startsWith('data: '))continue;
+      const data=line.slice(6);if(data==='[DONE]')continue;
+      try{const j=JSON.parse(data);if(j.type==='content_block_delta'&&j.delta?.text)onChunk(j.delta.text);}catch{}
+    }
+  }
+}
+
+// ── Agenda ─────────────────────────────────────────────────────
+async function generateAgenda(){
+  const btn=document.getElementById('agenda-btn');
+  const container=document.getElementById('agenda-container');
+  const digest=buildDigest();
+  if(!digest.trim()){toast('Refresh feeds first!');return;}
+  btn.innerHTML='<span class="spinning">✨</span>';btn.style.pointerEvents='none';
+  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating…</div>';
+  const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const system='You are a world affairs analyst. Identify key scheduled events and issues to watch in the coming week.';
+  const user=`Today is ${today}. Based on these headlines, identify 6-8 key agenda items for next week.\n\nFor each:\nCATEGORY: [politics/economics/science/culture]\nTITLE: [short title]\nWHAT TO WATCH: [1-2 sentences]\n---\n\nHeadlines:\n${digest}`;
+  let full='';
+  container.innerHTML='<div id="agenda-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
+  const el=document.getElementById('agenda-stream');
+  try{
+    await callClaude(system,user,chunk=>{full+=chunk;el.innerHTML=full.replace(/\n/g,'<br>')+'<span class="cursor"></span>';});
+    renderAgendaFinal(full,container);
+    const ts=new Date().toISOString();
+    document.getElementById('agenda-info').textContent='🕐 '+fmtFull(ts);
+    // Save to this week's snapshot
+    const cw=wid();
+    if(!SNAPSHOTS[cw])SNAPSHOTS[cw]={weekId:cw,snapshots:[]};
+    SNAPSHOTS[cw].agendaText=full;
+    SNAPSHOTS[cw].agendaTs=ts;
+    persistSnap();
+  }catch(e){container.innerHTML=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:12px;padding:14px;color:var(--miss);font-size:13px;">❌ ${e.message}</div>`;}
+  btn.innerHTML='✨ Generate';btn.style.pointerEvents='';
+}
+
+function getCatKey(s){
+  s=s.toLowerCase();
+  if(s.includes('culture')||s.includes('art'))return'culture';
+  if(s.includes('econ'))return'economics';
+  if(s.includes('polit'))return'politics';
+  return'science';
+}
+
+function renderAgendaFinal(text,container){
+  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
+  let html='';
+  for(const block of blocks){
+    const cm=block.match(/CATEGORY:\s*(.+)/i);
+    const tm=block.match(/TITLE:\s*(.+)/i);
+    const wm=block.match(/WHAT TO WATCH:\s*([\s\S]+)/i);
+    if(!tm)continue;
+    const cat=cm?getCatKey(cm[1]):'politics';
+    html+=`<div class="agenda-item ${cat}">
+      <div class="agenda-cat">${FEEDS.find(f=>f.key===cat)?.label||cat}</div>
+      <div class="agenda-title">${tm[1].trim()}</div>
+      ${wm?`<div class="agenda-desc">${wm[1].trim()}</div>`:''}
+    </div>`;
+  }
+  container.innerHTML=html||`<div class="card" style="font-size:13px;line-height:1.6">${text}</div>`;
 }
 
 // ── Predictions ────────────────────────────────────────────────
+async function generatePredictions(){
+  const btn=document.getElementById('gen-btn');
+  const container=document.getElementById('ai-predictions');
+  const digest=buildDigest();
+  if(!digest.trim()){toast('Refresh feeds first!');return;}
+  btn.innerHTML='<span class="spinning">🤖</span>';btn.style.pointerEvents='none';
+  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating predictions…</div>';
+  const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const system='You are a geopolitical analyst. Make specific, falsifiable predictions with calibrated confidence.';
+  const user=`Today is ${today}. Generate 8 predictions: 2 for next week, 2 for next month, 2 for next year, 2 wildcards.\n\nFor each:\nHORIZON: [week/month/year/wildcard]\nCATEGORY: [politics/economics/science/culture]\nCONFIDENCE: [LOW/MEDIUM/HIGH]\nPREDICTION: [specific, falsifiable]\n---\n\nHeadlines:\n${digest}`;
+  let full='';
+  container.innerHTML='<div id="pred-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
+  const el=document.getElementById('pred-stream');
+  try{
+    await callClaude(system,user,chunk=>{full+=chunk;el.innerHTML=full.replace(/\n/g,'<br>')+'<span class="cursor"></span>';});
+    renderPredsFinal(full,container);
+    document.getElementById('pred-info').textContent='🕐 '+fmtFull(new Date().toISOString());
+  }catch(e){container.innerHTML=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:12px;padding:14px;color:var(--miss);font-size:13px;">❌ ${e.message}</div>`;}
+  btn.innerHTML='🤖 Generate';btn.style.pointerEvents='';
+}
+
+function renderPredsFinal(text,container){
+  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
+  let html='';
+  for(const block of blocks){
+    const hm=block.match(/HORIZON:\s*(.+)/i);
+    const cm=block.match(/CATEGORY:\s*(.+)/i);
+    const cfm=block.match(/CONFIDENCE:\s*(.+)/i);
+    const pm=block.match(/PREDICTION:\s*([\s\S]+)/i);
+    if(!pm)continue;
+    const h=hm?hm[1].trim().toLowerCase():'week';
+    const cat=cm?getCatKey(cm[1]):'politics';
+    const cf=(cfm?cfm[1].trim():'MEDIUM').toUpperCase();
+    const pred=pm[1].trim();
+    const cfColor=cf==='HIGH'?'var(--hit)':cf==='LOW'?'var(--miss)':'var(--partial)';
+    const hl={week:'Next week',month:'Next month',year:'Next year',wildcard:'🃏 Wildcard'}[h]||'Next week';
+    const enc=encodeURIComponent(pred);
+    const horizon=h==='wildcard'?'month':h;
+    html+=`<div class="pred-ai">
+      <div class="pred-ai-header">
+        <span class="tag tag-${cat}">${FEEDS.find(f=>f.key===cat)?.label||cat}</span>
+        <span style="font-size:11px;font-weight:700;color:${cfColor}">${cf}</span>
+      </div>
+      <div class="pred-ai-text">${pred}</div>
+      <div class="pred-ai-meta">
+        <span>🕐 ${hl}</span>
+        <button onclick="saveAIPred('${enc}','${cat}','${horizon}')" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;">+ Save</button>
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html||`<div class="card" style="font-size:13px;line-height:1.6">${text}</div>`;
+}
+
+function saveAIPred(enc,cat,h){
+  const txt=decodeURIComponent(enc);
+  const now=new Date().toISOString();
+  P.unshift({id:Date.now(),t:txt,cat,h,c:now,wid:wid(),s:null,ai:true});
+  persist();renderNew();toast('AI prediction saved ✓ — '+fmtFull(now));
+}
+
+// ── Manual predictions ─────────────────────────────────────────
 function setH(h,el){H=h;document.querySelectorAll('#screen-predict .htab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
 function setRH(h,el){RH=h;document.querySelectorAll('#screen-review .htab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderR();}
 
 function savePred(){
   const txt=document.getElementById('ptxt').value.trim();
   if(!txt){toast('Write a prediction first!');return;}
-  P.unshift({id:Date.now(),t:txt,cat:document.getElementById('pred-cat').value,h:H,c:new Date().toISOString(),wid:wid(),s:null});
-  persist();document.getElementById('ptxt').value='';renderNew();toast('Saved ✓');
+  const now=new Date().toISOString();
+  P.unshift({id:Date.now(),t:txt,cat:document.getElementById('pred-cat').value,h:H,c:now,wid:wid(),s:null,ai:false});
+  persist();document.getElementById('ptxt').value='';renderNew();toast('Saved — '+fmtFull(now));
 }
 
 function card(p,showScore){
-  const hl={week:'Next week',month:'Next month',year:'Next year'}[p.h];
+  const hl={week:'Next week',month:'Next month',year:'Next year'}[p.h]||p.h;
   const feed=FEEDS.find(f=>f.key===p.cat)||FEEDS[0];
   let badge='';
   if(p.s){const lb={hit:'✅ Hit',partial:'〰️ Partial',miss:'❌ Miss'};const cl={hit:'badge-hit',partial:'badge-partial',miss:'badge-miss'};badge=`<span class="badge ${cl[p.s]}">${lb[p.s]}</span>`;}
+  const aiBadge=p.ai?'<span class="ai-badge">🤖 AI</span>':'';
   const btns=showScore?`<div class="sbtns">
     <button class="sbtn hit" onclick="scoreIt(${p.id},'hit')">✅ Hit</button>
     <button class="sbtn partial" onclick="scoreIt(${p.id},'partial')">〰️ Partial</button>
@@ -277,18 +500,109 @@ function card(p,showScore){
   </div>`:'';
   return`<div class="pitem">
     <div style="display:flex;justify-content:space-between;align-items:center">
-      <span class="tag tag-${p.cat}">${feed.label}</span>${badge}
+      <div><span class="tag tag-${p.cat}">${feed.label}</span>${aiBadge}</div>${badge}
     </div>
     <div class="ptext">${p.t}</div>
-    <div class="pmeta">🕐 ${hl} · Due ${fmt(dueDate(p.h,p.c).toISOString())} · Made ${fmt(p.c)}</div>
+    <div class="pmeta">
+      <div>🕐 ${hl} · Due ${fmt(dueDate(p.h,p.c).toISOString())}</div>
+      <div style="margin-top:3px">📅 Saved ${fmtFull(p.c)} · ${p.wid}</div>
+    </div>
     ${btns}
   </div>`;
 }
 
-function renderNew(){const el=document.getElementById('newlist');const w=P.filter(p=>p.wid===wid());el.innerHTML=w.length?w.map(p=>card(p,false)).join(''):'<div class="empty"><div class="i">🔮</div>No predictions yet this week</div>';}
+function renderNew(){const el=document.getElementById('newlist');el.innerHTML=P.length?P.map(p=>card(p,false)).join(''):'<div class="empty"><div class="i">🔮</div>No predictions yet</div>';}
 function renderR(){const el=document.getElementById('rlist');const d=P.filter(p=>p.h===RH&&isDue(p)&&!p.s);el.innerHTML=d.length?d.map(p=>card(p,true)).join(''):'<div class="empty"><div class="i">✅</div>No unscored predictions due yet</div>';}
-
 function scoreIt(id,s){const p=P.find(x=>x.id===id);if(p){p.s=s;persist();}renderR();renderS();toast('Scored!');}
+
+// ── History ────────────────────────────────────────────────────
+function renderHistory(){
+  const container=document.getElementById('history-container');
+  // Collect all week IDs from both predictions and snapshots
+  const allWids=new Set([
+    ...Object.keys(SNAPSHOTS),
+    ...P.map(p=>p.wid)
+  ]);
+  const sorted=[...allWids].sort().reverse();
+  if(!sorted.length){container.innerHTML='<div class="empty"><div class="i">📚</div>Your weekly history will build up here</div>';return;}
+  let html='';
+  for(const w of sorted){
+    const snap=SNAPSHOTS[w];
+    const preds=P.filter(p=>p.wid===w);
+    const latestFetch=snap?.snapshots?.[snap.snapshots.length-1]?.fetchedAt||snap?.fetchedAt;
+    const agendaTs=snap?.agendaTs;
+    const subParts=[];
+    if(latestFetch)subParts.push('📡 '+fmt(latestFetch));
+    subParts.push(`🔮 ${preds.length} prediction${preds.length!==1?'s':''}`);
+    const scored=preds.filter(p=>p.s);
+    if(scored.length){
+      const hits=scored.filter(p=>p.s==='hit').length;
+      const parts=scored.filter(p=>p.s==='partial').length;
+      const pct=Math.round((hits+parts*.5)/scored.length*100);
+      subParts.push(`📊 ${pct}% accuracy`);
+    }
+    html+=`<div class="week-entry" id="we-${w}">
+      <div class="week-entry-header" onclick="toggleWeek('${w}')">
+        <div>
+          <div class="week-entry-title">${w}</div>
+          <div class="week-entry-sub">${subParts.join(' · ')}</div>
+        </div>
+        <span class="week-entry-chevron">›</span>
+      </div>
+      <div class="week-entry-body">
+        ${buildWeekBody(w,snap,preds,agendaTs)}
+      </div>
+    </div>`;
+  }
+  container.innerHTML=html;
+}
+
+function buildWeekBody(w,snap,preds,agendaTs){
+  let html='';
+  // News snapshots
+  if(snap?.snapshots?.length){
+    const latest=snap.snapshots[snap.snapshots.length-1];
+    html+=`<div class="history-section-label">📡 News digest</div>`;
+    html+=`<div class="ts-chip">📅 ${fmtFull(latest.fetchedAt)}</div>`;
+    for(const feed of FEEDS){
+      const items=latest.feeds?.[feed.key]||[];
+      if(!items.length)continue;
+      html+=`<div style="margin-bottom:12px">
+        <div class="feed-name feed-${feed.key}" style="font-size:13px;margin-bottom:6px">${feed.label}</div>
+        ${items.map(it=>`<div class="news-item"><div class="news-title"><a href="${it.link}" target="_blank">${it.title}</a></div><div class="news-date">${it.date?fmts(it.date):''}</div></div>`).join('')}
+      </div>`;
+    }
+  }
+  // Agenda
+  if(snap?.agendaText){
+    html+=`<div class="history-section-label">🗓️ Agenda generated</div>`;
+    if(agendaTs)html+=`<div class="ts-chip">📅 ${fmtFull(agendaTs)}</div>`;
+    html+=`<div style="margin-top:8px">${buildAgendaCompact(snap.agendaText)}</div>`;
+  }
+  // Predictions
+  if(preds.length){
+    html+=`<div class="history-section-label">🔮 Predictions (${preds.length})</div>`;
+    html+=preds.map(p=>card(p,false)).join('');
+  }
+  if(!html)html='<div style="color:var(--muted);font-size:13px;padding:8px 0">No data recorded this week yet.</div>';
+  return html;
+}
+
+function buildAgendaCompact(text){
+  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
+  return blocks.map(block=>{
+    const tm=block.match(/TITLE:\s*(.+)/i);
+    const cm=block.match(/CATEGORY:\s*(.+)/i);
+    if(!tm)return'';
+    const cat=cm?getCatKey(cm[1]):'politics';
+    return`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span class="tag tag-${cat}" style="margin-bottom:0;margin-right:6px">${FEEDS.find(f=>f.key===cat)?.label||cat}</span>${tm[1].trim()}</div>`;
+  }).join('');
+}
+
+function toggleWeek(w){
+  const el=document.getElementById('we-'+w);
+  el.classList.toggle('open');
+}
 
 // ── Stats ──────────────────────────────────────────────────────
 function bar(pct){return`<div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>`;}
@@ -300,7 +614,7 @@ function renderS(){
   const a=acc(sc);document.getElementById('sacc').textContent=a!==null?a+'%':'—';
   document.getElementById('catstat').innerHTML=FEEDS.map(f=>{
     const ps=P.filter(p=>p.cat===f.key),s=ps.filter(p=>p.s);
-    if(!s.length)return`<div style="margin-bottom:10px"><span class="tag tag-${f.key}">${f.label}</span> <span style="color:var(--muted);font-size:12px">${ps.length} predictions</span></div>`;
+    if(!s.length)return`<div style="margin-bottom:10px"><span class="tag tag-${f.key}">${f.label}</span><span style="color:var(--muted);font-size:12px;margin-left:8px">${ps.length} predictions</span></div>`;
     const pct=acc(s);
     return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="tag tag-${f.key}">${f.label}</span><span style="font-size:12px;color:var(--muted)">${pct}% · ${s.length} scored</span></div>${bar(pct)}</div>`;
   }).join('');
@@ -321,23 +635,23 @@ function showScreen(id,el){
   el.classList.add('active');
   if(id==='review')renderR();
   if(id==='stats')renderS();
+  if(id==='history')renderHistory();
 }
 
 function exportD(){
   const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech'};
-  const txt=P.map(p=>`[${p.c.split('T')[0]}] [${p.h}] [${lbl[p.cat]||p.cat}] ${p.t} → ${p.s||'unscored'}`).join('\n');
+  const txt=P.map(p=>`[${fmtFull(p.c)}] [${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('Copied!'));
 }
 
 // ── Init ───────────────────────────────────────────────────────
 const now=new Date();
 document.getElementById('hdate').textContent=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-document.getElementById('wklabel').textContent='Week '+wid()+' predictions';
-loadCache();
-renderNew();
-// Auto-fetch if cache is older than 24h or empty
+const savedKey=localStorage.getItem('psycho_key');
+if(savedKey)document.getElementById('api-key').value=savedKey;
+loadCache();renderNew();
 const lastFetch=FC[FEEDS[0]?.key]?.fetched;
-if(!lastFetch||(Date.now()-new Date(lastFetch).getTime())>86400000){fetchAll();}
+if(!lastFetch||(Date.now()-new Date(lastFetch).getTime())>86400000)fetchAll();
 </script>
 </body>
 </html>
