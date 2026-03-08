@@ -265,11 +265,14 @@ async function fetchFeed(feed){
   if(!res.ok)throw new Error('HTTP '+res.status);
   const txt=await res.text();
   const xml=new DOMParser().parseFromString(txt,'application/xml');
-  return [...xml.querySelectorAll('entry')].slice(0,8).map(e=>({
+  const WEATHER = /weather|forecast|temperature|rain|snow|wind|storm|sunny|cloudy|humidity|celsius|fahrenheit|degrees|precipitation/i;
+  let items=[...xml.querySelectorAll('entry')].map(e=>({
     title:(e.querySelector('title')?.textContent||'').replace(/<[^>]+>/g,'').trim(),
     link: e.querySelector('link')?.getAttribute('href')||'#',
     date: e.querySelector('published')?.textContent||'',
   }));
+  if(feed.key==='weekahead') items=items.filter(it=>!WEATHER.test(it.title));
+  return items.slice(0,8);
 }
 
 async function fetchAll(){
