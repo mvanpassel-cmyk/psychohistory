@@ -219,8 +219,8 @@
     <input class="key-input" type="password" id="api-key" placeholder="sk-ant-..." oninput="saveKey()">
     <div class="settings-note">Required for AI predictions &amp; agenda. Stored locally only, sent only to Anthropic's API.</div>
   </div>
-  <button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:12px" onclick="exportD()">📤 Export to clipboard</button>
-</div>
+<button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:12px" onclick="exportD()">📤 Export to clipboard</button>
+<button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:8px" onclick="downloadTxt()">💾 Download als .txt</button></div>
 
 <div class="toast" id="toast"></div>
 
@@ -635,7 +635,41 @@ function exportD(){
   const txt=P.map(p=>`[${fmtFull(p.c)}] [${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('Copied!'));
 }
-
+function downloadTxt(){
+  const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech',weekahead:'Week Ahead'};
+  const date=new Date().toISOString().slice(0,10);
+  const currentWid=wid();
+  const snap=SNAPSHOTS[currentWid];
+  let out=`PSYCHOHISTORY — ${date} (${currentWid})\n${'='.repeat(40)}\n\n`;
+  // News
+  if(snap?.snapshots?.length){
+    out+=`NEWS\n${'-'.repeat(20)}\n`;
+    const latest=snap.snapshots[snap.snapshots.length-1];
+    for(const feed of FEEDS){
+      const items=latest.feeds?.[feed.key]||[];
+      if(!items.length)continue;
+      out+=`\n${feed.label}\n`;
+      items.forEach(it=>out+=`- ${it.title}\n  ${it.link}\n`);
+    }
+    out+='\n';
+  }
+  // Agenda
+  if(snap?.agendaText){
+    out+=`AGENDA\n${'-'.repeat(20)}\n${snap.agendaText}\n\n`;
+  }
+  // Predictions
+  if(P.length){
+    out+=`PREDICTIONS\n${'-'.repeat(20)}\n`;
+    P.forEach(p=>out+=`[${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}\n`);
+  }
+  const blob=new Blob([out],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`psychohistory-${date}.txt`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('Downloaded ✓');
+}
 // ── Init ───────────────────────────────────────────────────────
 const now=new Date();
 document.getElementById('hdate').textContent=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
