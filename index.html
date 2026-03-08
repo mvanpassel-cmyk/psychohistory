@@ -11,7 +11,7 @@
     --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a40;
     --accent:#7c6af7;--accent2:#a78bfa;--text:#e8e8f0;--muted:#7070a0;
     --hit:#4ade80;--partial:#fbbf24;--miss:#f87171;
-    --culture:#f472b6;--economics:#06b6d4;--politics:#f97316;--science:#a78bfa;
+    --culture:#f472b6;--economics:#06b6d4;--politics:#f97316;--science:#a78bfa;--weekahead:#34d399;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;padding-bottom:90px;}
@@ -34,6 +34,7 @@
   .feed-economics .feed-name{color:var(--economics);}
   .feed-politics .feed-name{color:var(--politics);}
   .feed-science .feed-name{color:var(--science);}
+  .feed-weekahead .feed-name{color:var(--weekahead);}
   .news-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
   .news-title{font-size:13px;font-weight:500;line-height:1.45;margin-bottom:4px;}
   .news-title a{color:var(--text);text-decoration:none;}
@@ -44,6 +45,7 @@
   .agenda-item.economics{border-left-color:var(--economics);}
   .agenda-item.politics{border-left-color:var(--politics);}
   .agenda-item.science{border-left-color:var(--science);}
+  .agenda-item.weekahead{border-left-color:var(--weekahead);}
   .agenda-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent2);margin-bottom:6px;}
   .agenda-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px;}
   .agenda-desc{font-size:13px;color:var(--muted);line-height:1.4;}
@@ -65,6 +67,7 @@
   .tag-economics{background:rgba(6,182,212,.15);color:var(--economics);}
   .tag-politics {background:rgba(249,115,22,.15);color:var(--politics);}
   .tag-science  {background:rgba(167,139,250,.15);color:var(--science);}
+  .tag-weekahead{background:rgba(52,211,153,.15);color:var(--weekahead);}
   .pitem{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
   .ptext{font-size:14px;line-height:1.5;margin:8px 0;}
   .pmeta{font-size:11px;color:var(--muted);margin-top:6px;}
@@ -100,7 +103,6 @@
   .settings-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
   .cursor{display:inline-block;width:2px;height:14px;background:var(--accent2);margin-left:2px;animation:blink .7s infinite;vertical-align:middle;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  /* History styles */
   .week-entry{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;}
   .week-entry-header{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
   .week-entry-header:active{background:var(--surface2);}
@@ -172,6 +174,7 @@
       <option value="economics">🔵 Economics</option>
       <option value="politics">🟠 Politics</option>
       <option value="science">🟣 Science &amp; Technology</option>
+      <option value="weekahead">🟢 Week Ahead</option>
     </select>
     <div class="ctitle" style="margin-top:14px">Your prediction</div>
     <textarea id="ptxt" rows="3" placeholder="Write your own prediction..."></textarea>
@@ -226,15 +229,16 @@
 const FEEDS = [
   { key:'culture',   label:'🩷 Art & Culture',       url:'https://www.google.com/alerts/feeds/07358569115421849873/6507700123872615525' },
   { key:'economics', label:'🔵 Economics',            url:'https://www.google.com/alerts/feeds/07358569115421849873/10106271447451997457' },
-  { key:'politics',  label:'🟠 Politics',             url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698350' },
+  { key:'politics',  label:'🟠 Politics',             url:'https://www.google.com/alerts/feeds/07358569115421849873/2423145960260080625' },
   { key:'science',   label:'🟣 Science & Technology', url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698763' },
+  { key:'weekahead', label:'🟢 Week Ahead',           url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698350' },
 ];
 const PROXY = 'https://corsproxy.io/?';
 
 // ── State ──────────────────────────────────────────────────────
 let P        = JSON.parse(localStorage.getItem('psycho_v5')       || '[]');
 let FC       = JSON.parse(localStorage.getItem('psycho_fc')        || '{}');
-let SNAPSHOTS= JSON.parse(localStorage.getItem('psycho_snapshots') || '{}'); // keyed by weekId
+let SNAPSHOTS= JSON.parse(localStorage.getItem('psycho_snapshots') || '{}');
 let H = 'week', RH = 'week';
 
 // ── Utils ──────────────────────────────────────────────────────
@@ -288,11 +292,8 @@ async function fetchAll(){
     }
   }
   persistFC();
-  // Save snapshot for this week (keep all, not just latest)
   const currentWid=wid();
-  if(!SNAPSHOTS[currentWid]){
-    SNAPSHOTS[currentWid]={weekId:currentWid,snapshots:[]};
-  }
+  if(!SNAPSHOTS[currentWid]){SNAPSHOTS[currentWid]={weekId:currentWid,snapshots:[]};}
   SNAPSHOTS[currentWid].snapshots.push(snapshot);
   persistSnap();
   container.innerHTML=html||'<div class="empty"><div class="i">😶</div>No items found</div>';
@@ -302,7 +303,7 @@ async function fetchAll(){
   toast('Feeds updated ✓');
 }
 
-function renderSection(feed,items,compact=false){
+function renderSection(feed,items){
   const rows=items.map(it=>`
     <div class="news-item">
       <div class="news-title"><a href="${it.link}" target="_blank">${it.title||'(no title)'}</a></div>
@@ -368,8 +369,8 @@ async function generateAgenda(){
   btn.innerHTML='<span class="spinning">✨</span>';btn.style.pointerEvents='none';
   container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating…</div>';
   const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const system='You are a world affairs analyst. Identify key scheduled events and issues to watch in the coming week.';
-  const user=`Today is ${today}. Based on these headlines, identify 6-8 key agenda items for next week.\n\nFor each:\nCATEGORY: [politics/economics/science/culture]\nTITLE: [short title]\nWHAT TO WATCH: [1-2 sentences]\n---\n\nHeadlines:\n${digest}`;
+  const system='You are a world affairs analyst. Identify key scheduled events and issues to watch in the coming week. Pay special attention to items from the Week Ahead feed as these are explicitly flagged as upcoming events.';
+  const user=`Today is ${today}. Based on these headlines, identify 6-8 key agenda items for next week. The "Week Ahead" section contains explicitly scheduled upcoming events — prioritise these.\n\nFor each:\nCATEGORY: [politics/economics/science/culture/weekahead]\nTITLE: [short title]\nWHAT TO WATCH: [1-2 sentences]\n---\n\nHeadlines:\n${digest}`;
   let full='';
   container.innerHTML='<div id="agenda-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
   const el=document.getElementById('agenda-stream');
@@ -378,7 +379,6 @@ async function generateAgenda(){
     renderAgendaFinal(full,container);
     const ts=new Date().toISOString();
     document.getElementById('agenda-info').textContent='🕐 '+fmtFull(ts);
-    // Save to this week's snapshot
     const cw=wid();
     if(!SNAPSHOTS[cw])SNAPSHOTS[cw]={weekId:cw,snapshots:[]};
     SNAPSHOTS[cw].agendaText=full;
@@ -390,6 +390,7 @@ async function generateAgenda(){
 
 function getCatKey(s){
   s=s.toLowerCase();
+  if(s.includes('week'))return'weekahead';
   if(s.includes('culture')||s.includes('art'))return'culture';
   if(s.includes('econ'))return'economics';
   if(s.includes('polit'))return'politics';
@@ -424,7 +425,7 @@ async function generatePredictions(){
   container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating predictions…</div>';
   const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const system='You are a geopolitical analyst. Make specific, falsifiable predictions with calibrated confidence.';
-  const user=`Today is ${today}. Generate 8 predictions: 2 for next week, 2 for next month, 2 for next year, 2 wildcards.\n\nFor each:\nHORIZON: [week/month/year/wildcard]\nCATEGORY: [politics/economics/science/culture]\nCONFIDENCE: [LOW/MEDIUM/HIGH]\nPREDICTION: [specific, falsifiable]\n---\n\nHeadlines:\n${digest}`;
+  const user=`Today is ${today}. Generate 8 predictions: 2 for next week, 2 for next month, 2 for next year, 2 wildcards.\n\nFor each:\nHORIZON: [week/month/year/wildcard]\nCATEGORY: [politics/economics/science/culture/weekahead]\nCONFIDENCE: [LOW/MEDIUM/HIGH]\nPREDICTION: [specific, falsifiable]\n---\n\nHeadlines:\n${digest}`;
   let full='';
   container.innerHTML='<div id="pred-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
   const el=document.getElementById('pred-stream');
@@ -518,11 +519,7 @@ function scoreIt(id,s){const p=P.find(x=>x.id===id);if(p){p.s=s;persist();}rende
 // ── History ────────────────────────────────────────────────────
 function renderHistory(){
   const container=document.getElementById('history-container');
-  // Collect all week IDs from both predictions and snapshots
-  const allWids=new Set([
-    ...Object.keys(SNAPSHOTS),
-    ...P.map(p=>p.wid)
-  ]);
+  const allWids=new Set([...Object.keys(SNAPSHOTS),...P.map(p=>p.wid)]);
   const sorted=[...allWids].sort().reverse();
   if(!sorted.length){container.innerHTML='<div class="empty"><div class="i">📚</div>Your weekly history will build up here</div>';return;}
   let html='';
@@ -549,9 +546,7 @@ function renderHistory(){
         </div>
         <span class="week-entry-chevron">›</span>
       </div>
-      <div class="week-entry-body">
-        ${buildWeekBody(w,snap,preds,agendaTs)}
-      </div>
+      <div class="week-entry-body">${buildWeekBody(w,snap,preds,agendaTs)}</div>
     </div>`;
   }
   container.innerHTML=html;
@@ -559,7 +554,6 @@ function renderHistory(){
 
 function buildWeekBody(w,snap,preds,agendaTs){
   let html='';
-  // News snapshots
   if(snap?.snapshots?.length){
     const latest=snap.snapshots[snap.snapshots.length-1];
     html+=`<div class="history-section-label">📡 News digest</div>`;
@@ -573,13 +567,11 @@ function buildWeekBody(w,snap,preds,agendaTs){
       </div>`;
     }
   }
-  // Agenda
   if(snap?.agendaText){
     html+=`<div class="history-section-label">🗓️ Agenda generated</div>`;
     if(agendaTs)html+=`<div class="ts-chip">📅 ${fmtFull(agendaTs)}</div>`;
     html+=`<div style="margin-top:8px">${buildAgendaCompact(snap.agendaText)}</div>`;
   }
-  // Predictions
   if(preds.length){
     html+=`<div class="history-section-label">🔮 Predictions (${preds.length})</div>`;
     html+=preds.map(p=>card(p,false)).join('');
@@ -599,10 +591,7 @@ function buildAgendaCompact(text){
   }).join('');
 }
 
-function toggleWeek(w){
-  const el=document.getElementById('we-'+w);
-  el.classList.toggle('open');
-}
+function toggleWeek(w){document.getElementById('we-'+w).classList.toggle('open');}
 
 // ── Stats ──────────────────────────────────────────────────────
 function bar(pct){return`<div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>`;}
@@ -639,7 +628,7 @@ function showScreen(id,el){
 }
 
 function exportD(){
-  const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech'};
+  const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech',weekahead:'Week Ahead'};
   const txt=P.map(p=>`[${fmtFull(p.c)}] [${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}`).join('\n');
   navigator.clipboard.writeText(txt).then(()=>toast('Copied!'));
 }
