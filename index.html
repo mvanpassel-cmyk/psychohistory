@@ -1,683 +1,337 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Psychohistory</title>
+<meta name="description" content="Global health forecasting: news, calibrated probability forecasts, and regular checks of what came true.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231f3a5f'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23f4c95d' stroke-width='2.5'/%3E%3Cpath d='M16 7v9l6 4' fill='none' stroke='%23f4c95d' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
-  :root {
-    --bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a26;--border:#2a2a40;
-    --accent:#7c6af7;--accent2:#a78bfa;--text:#e8e8f0;--muted:#7070a0;
-    --hit:#4ade80;--partial:#fbbf24;--miss:#f87171;
-    --culture:#f472b6;--economics:#06b6d4;--politics:#f97316;--science:#a78bfa;--weekahead:#34d399;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100vh;padding-bottom:90px;}
-  header{padding:52px 20px 16px;border-bottom:1px solid var(--border);}
-  header h1{font-size:28px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  header p{color:var(--muted);font-size:13px;margin-top:4px;}
-  .tabs{display:flex;padding:0 8px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;overflow-x:auto;}
-  .tab{padding:13px 11px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
-  .tab.active{color:var(--accent2);border-bottom-color:var(--accent2);}
-  .screen{display:none;padding:20px;}
-  .screen.active{display:block;}
-  .wlabel{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;}
-  .ctitle{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
-  .feed-section{margin-bottom:24px;}
-  .feed-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .feed-name{font-size:15px;font-weight:700;}
-  .feed-count{font-size:11px;color:var(--muted);}
-  .feed-culture .feed-name{color:var(--culture);}
-  .feed-economics .feed-name{color:var(--economics);}
-  .feed-politics .feed-name{color:var(--politics);}
-  .feed-science .feed-name{color:var(--science);}
-  .feed-weekahead .feed-name{color:var(--weekahead);}
-  .news-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
-  .news-title{font-size:13px;font-weight:500;line-height:1.45;margin-bottom:4px;}
-  .news-title a{color:var(--text);text-decoration:none;}
-  .news-title a:hover{color:var(--accent2);}
-  .news-date{font-size:11px;color:var(--muted);}
-  .agenda-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;border-left:3px solid var(--accent);}
-  .agenda-item.culture{border-left-color:var(--culture);}
-  .agenda-item.economics{border-left-color:var(--economics);}
-  .agenda-item.politics{border-left-color:var(--politics);}
-  .agenda-item.science{border-left-color:var(--science);}
-  .agenda-item.weekahead{border-left-color:var(--weekahead);}
-  .agenda-cat{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent2);margin-bottom:6px;}
-  .agenda-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px;}
-  .agenda-desc{font-size:13px;color:var(--muted);line-height:1.4;}
-  .pred-ai{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid var(--accent2);}
-  .pred-ai-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-  .pred-ai-text{font-size:14px;line-height:1.5;}
-  .pred-ai-meta{font-size:11px;color:var(--muted);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
-  textarea,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:14px;font-family:inherit;margin-top:6px;}
-  textarea{resize:none;}
-  textarea:focus,select:focus{outline:none;border-color:var(--accent);}
-  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border-radius:14px;margin-top:10px;font-size:15px;font-weight:600;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),#9d4edd);color:white;}
-  .btn:active{opacity:.8;}
-  .btn-ghost{background:var(--surface2)!important;border:1px solid var(--border)!important;color:var(--muted)!important;background:none;}
-  .htabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
-  .htab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--muted);}
-  .htab.active{background:rgba(124,106,247,.2);border-color:var(--accent);color:var(--accent2);}
-  .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:4px;}
-  .tag-culture  {background:rgba(244,114,182,.15);color:var(--culture);}
-  .tag-economics{background:rgba(6,182,212,.15);color:var(--economics);}
-  .tag-politics {background:rgba(249,115,22,.15);color:var(--politics);}
-  .tag-science  {background:rgba(167,139,250,.15);color:var(--science);}
-  .tag-weekahead{background:rgba(52,211,153,.15);color:var(--weekahead);}
-  .pitem{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px;}
-  .ptext{font-size:14px;line-height:1.5;margin:8px 0;}
-  .pmeta{font-size:11px;color:var(--muted);margin-top:6px;}
-  .ai-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(124,106,247,.2);color:var(--accent2);margin-left:5px;}
-  .sbtns{display:flex;gap:8px;margin-top:10px;}
-  .sbtn{flex:1;padding:8px;border-radius:10px;border:1px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:var(--surface2);color:var(--muted);}
-  .sbtn.hit    {background:rgba(74,222,128,.15);border-color:var(--hit);   color:var(--hit);}
-  .sbtn.partial{background:rgba(251,191,36,.15);border-color:var(--partial);color:var(--partial);}
-  .sbtn.miss   {background:rgba(248,113,113,.15);border-color:var(--miss); color:var(--miss);}
-  .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-  .badge-hit    {background:rgba(74,222,128,.15);color:var(--hit);}
-  .badge-partial{background:rgba(251,191,36,.15);color:var(--partial);}
-  .badge-miss   {background:rgba(248,113,113,.15);color:var(--miss);}
-  .srow{display:flex;gap:10px;margin-bottom:12px;}
-  .sbox{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center;}
-  .snum{font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--accent2),#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-  .slbl{font-size:11px;color:var(--muted);margin-top:2px;}
-  .pbar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:6px 0;}
-  .pfill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
-  .divider{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
-  .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
-  .empty .i{font-size:40px;margin-bottom:12px;}
-  .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:white;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;z-index:100;white-space:nowrap;}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-  .fetch-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-  .fetch-info{font-size:12px;color:var(--muted);}
-  .refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);border:1px solid var(--border);color:var(--accent2);}
-  .refresh-btn:active{opacity:.7;}
-  .spinning{display:inline-block;animation:spin 1s linear infinite;}
-  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  .key-input{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-size:13px;font-family:inherit;width:100%;margin-top:6px;}
-  .key-input:focus{outline:none;border-color:var(--accent);}
-  .settings-note{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
-  .cursor{display:inline-block;width:2px;height:14px;background:var(--accent2);margin-left:2px;animation:blink .7s infinite;vertical-align:middle;}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  .week-entry{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:16px;overflow:hidden;}
-  .week-entry-header{padding:14px 16px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
-  .week-entry-header:active{background:var(--surface2);}
-  .week-entry-title{font-size:15px;font-weight:700;color:var(--text);}
-  .week-entry-sub{font-size:11px;color:var(--muted);margin-top:3px;}
-  .week-entry-chevron{color:var(--muted);font-size:14px;transition:transform .2s;}
-  .week-entry.open .week-entry-chevron{transform:rotate(90deg);}
-  .week-entry-body{display:none;padding:0 16px 16px;}
-  .week-entry.open .week-entry-body{display:block;}
-  .history-section-label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
-  .ts-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-bottom:6px;}
+:root{--bg:#f6f4ef;--ink:#1c1f26;--muted:#667085;--card:#fff;--line:#e4e0d6;--accent:#1f3a5f;--warn:#e0a526;--yes:#2f7d4f;--no:#b3402f;--tint:#eef2f8}
+@media (prefers-color-scheme:dark){:root{--bg:#14161b;--ink:#eceae4;--muted:#9aa1ae;--card:#1c1f26;--line:#2b303a;--accent:#f4c95d;--yes:#6cc28e;--no:#ec8b7a;--tint:#232833}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:24px 16px 72px}
+a{color:var(--accent)}
+h1{font:600 clamp(26px,5vw,36px)/1.1 ui-serif,Georgia,serif;margin:6px 0 6px}
+h2{font:600 19px/1.2 ui-serif,Georgia,serif;margin:22px 0 8px}
+.lead{color:var(--muted);margin:0 0 14px;max-width:70ch}
+.muted{color:var(--muted)}.small{font-size:13px}
+nav{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:0 0 14px}
+nav button{font:inherit;font-size:15px;background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;color:var(--muted);cursor:pointer}
+nav button[aria-selected=true]{color:var(--ink);border-color:var(--accent);font-weight:600}
+nav .badge{margin-left:4px}
+.badge{display:inline-block;border-radius:999px;padding:0 7px;font-size:12px;font-weight:600;background:var(--accent);color:var(--bg)}
+button,select,input,textarea{font:inherit}
+.btn{font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:600}
+.btn.yes{border-color:var(--yes);color:var(--yes)}.btn.no{border-color:var(--no);color:var(--no)}
+.btn:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=search],input[type=date],input[type=number],input[type=password],select,textarea{font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);max-width:100%}
+textarea{width:100%;min-height:60px}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 10px}
+.card .q{font-weight:600}
+.card .meta{font-size:12px;color:var(--muted);margin:2px 0 6px}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:12px;margin-right:6px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-block;background:var(--tint);border-radius:8px;padding:2px 8px;font-size:13px;margin:0 6px 4px 0}
+.note{border-left:3px solid var(--warn);padding:2px 12px;color:var(--muted);font-size:13px;margin:14px 0}
+.banner{background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:0 0 12px;font-size:14px}
+.err{color:var(--no)}
+.news{border-bottom:1px solid var(--line);padding:8px 0}
+.news a{font-weight:600;text-decoration:none}
+.news .s{font-size:13px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font:600 24px ui-serif,Georgia,serif}
+label.f{display:block;font-size:13px;color:var(--muted);margin:8px 0 2px}
+svg text{fill:var(--muted);font-size:11px}
+.hidden{display:none}
+footer{margin-top:36px;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
-<header>
-  <h1>Psychohistory</h1>
-  <p id="hdate"></p>
-</header>
-<div class="tabs">
-  <div class="tab active" onclick="showScreen('news',this)">📡 News</div>
-  <div class="tab" onclick="showScreen('agenda',this)">🗓️ Next Week</div>
-  <div class="tab" onclick="showScreen('predict',this)">🔮 Predict</div>
-  <div class="tab" onclick="showScreen('review',this)">🔍 Review</div>
-  <div class="tab" onclick="showScreen('history',this)">📚 History</div>
-  <div class="tab" onclick="showScreen('stats',this)">📊 Stats</div>
+<div class="wrap">
+<h1>Psychohistory</h1>
+<p class="lead">Forecasting for global health. Read the news, write down calibrated probabilities for things that can be checked, and review what came true. The point is not the forecast but the track record: how well calibrated you and Claude are.</p>
+<div id="banner"></div>
+<nav role="tablist" id="tabs"></nav>
+<div id="view"></div>
+<footer>News comes from the GH Ribbon feeds, refreshed hourly. Forecasts are stored only in this browser; use Export to keep a copy. Claude's forecasts rest on headlines and its own knowledge, which can be outdated: treat them as a second opinion to be scored, not as an answer.</footer>
 </div>
-
-<!-- NEWS -->
-<div class="screen active" id="screen-news">
-  <div class="fetch-bar">
-    <span class="fetch-info" id="fetch-info">Pull your Google Alerts</span>
-    <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">🔄 Refresh</button>
-  </div>
-  <div id="feeds-container">
-    <div class="empty"><div class="i">📡</div>Tap Refresh to load your alerts</div>
-  </div>
-</div>
-
-<!-- NEXT WEEK AGENDA -->
-<div class="screen" id="screen-agenda">
-  <div class="fetch-bar">
-    <span class="fetch-info" id="agenda-info">Key issues &amp; events coming up</span>
-    <button class="refresh-btn" id="agenda-btn" onclick="generateAgenda()">✨ Generate</button>
-  </div>
-  <div id="agenda-container">
-    <div class="empty"><div class="i">🗓️</div>Tap Generate to see what's on the agenda next week</div>
-  </div>
-</div>
-
-<!-- PREDICT -->
-<div class="screen" id="screen-predict">
-  <div class="fetch-bar">
-    <span class="fetch-info" id="pred-info">AI-generated predictions</span>
-    <button class="refresh-btn" id="gen-btn" onclick="generatePredictions()">🤖 Generate</button>
-  </div>
-  <div id="ai-predictions">
-    <div class="empty"><div class="i">🤖</div>Tap Generate to create AI predictions from your feeds</div>
-  </div>
-  <div class="divider">Add your own prediction</div>
-  <div class="htabs">
-    <div class="htab active" onclick="setH('week',this)">Next week</div>
-    <div class="htab" onclick="setH('month',this)">Next month</div>
-    <div class="htab" onclick="setH('year',this)">Next year</div>
-  </div>
-  <div class="card">
-    <div class="ctitle">Category</div>
-    <select id="pred-cat">
-      <option value="culture">🩷 Art &amp; Culture</option>
-      <option value="economics">🔵 Economics</option>
-      <option value="politics">🟠 Politics</option>
-      <option value="science">🟣 Science &amp; Technology</option>
-      <option value="weekahead">🟢 Week Ahead</option>
-    </select>
-    <div class="ctitle" style="margin-top:14px">Your prediction</div>
-    <textarea id="ptxt" rows="3" placeholder="Write your own prediction..."></textarea>
-    <button class="btn" onclick="savePred()">💾 Save prediction</button>
-  </div>
-  <div class="divider">All saved predictions</div>
-  <div id="newlist"><div class="empty"><div class="i">🔮</div>No predictions yet</div></div>
-</div>
-
-<!-- REVIEW -->
-<div class="screen" id="screen-review">
-  <div class="wlabel">Score past predictions</div>
-  <div class="htabs">
-    <div class="htab active" onclick="setRH('week',this)">Week</div>
-    <div class="htab" onclick="setRH('month',this)">Month</div>
-    <div class="htab" onclick="setRH('year',this)">Year</div>
-  </div>
-  <div id="rlist"><div class="empty"><div class="i">✅</div>No predictions due for review yet</div></div>
-</div>
-
-<!-- HISTORY -->
-<div class="screen" id="screen-history">
-  <div class="wlabel">Weekly archive</div>
-  <div id="history-container">
-    <div class="empty"><div class="i">📚</div>Your weekly history will build up here over time</div>
-  </div>
-</div>
-
-<!-- STATS -->
-<div class="screen" id="screen-stats">
-  <div class="wlabel">Accuracy</div>
-  <div class="srow">
-    <div class="sbox"><div class="snum" id="stotal">0</div><div class="slbl">Total</div></div>
-    <div class="sbox"><div class="snum" id="sscored">0</div><div class="slbl">Scored</div></div>
-    <div class="sbox"><div class="snum" id="sacc">—</div><div class="slbl">Accuracy</div></div>
-  </div>
-  <div class="card"><div class="ctitle">By category</div><div id="catstat"></div></div>
-  <div class="card"><div class="ctitle">By horizon</div><div id="horstat"></div></div>
-  <div class="divider">Claude API Key</div>
-  <div class="card">
-    <div class="ctitle">Anthropic API key</div>
-    <input class="key-input" type="password" id="api-key" placeholder="sk-ant-..." oninput="saveKey()">
-    <div class="settings-note">Required for AI predictions &amp; agenda. Stored locally only, sent only to Anthropic's API.</div>
-  </div>
-<button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:12px" onclick="exportD()">📤 Export to clipboard</button>
-<button class="btn" style="background:var(--surface2);border:1px solid var(--border);color:var(--muted);margin-top:8px" onclick="downloadTxt()">💾 Download als .txt</button></div>
-
-<div class="toast" id="toast"></div>
-
 <script>
-// ── Config ─────────────────────────────────────────────────────
-const FEEDS = [
-  { key:'culture',   label:'🩷 Art & Culture',       url:'https://www.google.com/alerts/feeds/07358569115421849873/6507700123872615525' },
-  { key:'economics', label:'🔵 Economics',            url:'https://www.google.com/alerts/feeds/07358569115421849873/10106271447451997457' },
-  { key:'politics',  label:'🟠 Politics',             url:'https://www.google.com/alerts/feeds/07358569115421849873/2423145960260080625' },
-  { key:'science',   label:'🟣 Science & Technology', url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698763' },
-  { key:'weekahead', label:'🟢 Week Ahead',           url:'https://www.google.com/alerts/feeds/07358569115421849873/6098391560773698350' },
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RIBBON="https://mvanpassel-cmyk.github.io/gh-ribbon/";
+const FEEDS_URL=RIBBON+"data/feeds.json", EVENTS_URL=RIBBON+"world-calendar/events.json", ARCHIVE_URL=RIBBON+"data/archive.csv";
+const CATS={outbreaks:"Outbreaks and emergencies",governance:"WHO and pandemic agreement",amr:"AMR",eu:"EU and Dutch health policy",funding:"Funding and global health architecture",rd:"Vaccines, medicines and R&D",other:"Other"};
+const NEWSCATS={"":"All",who:"WHO and UN",emerg:"Emergencies",global:"Global health",policy:"Policy",amr:"AMR",journal:"Journals",news:"News",promed:"Outbreak reports"};
+const MODELS={"claude-haiku-4-5-20251001":"Claude Haiku 4.5 (fast)","claude-sonnet-5-5":"Claude Sonnet 5.5 (better reasoning)","claude-opus-5-5":"Claude Opus 5.5 (best, slowest)"};
+const TEMPLATES=[
+ {t:"WHO declares a new PHEIC",q:"Will WHO declare a new Public Health Emergency of International Concern (PHEIC) between now and the due date?",c:"Resolves yes if the WHO Director-General announces a new PHEIC after an IHR Emergency Committee meeting in the period. Extending or ending an existing PHEIC does not count.",cat:"outbreaks",b:"Eight PHEICs were declared from 2009 to 2024 (about 0.5 a year; check the current list). At that rate: about 4% in a month, 12% in a quarter, 40% in a year."},
+ {t:"A negotiation concludes on time",q:"Will [text/annex/agreement] be formally adopted or concluded by [date]?",c:"Resolves yes if the named body formally adopts or announces conclusion of the named text by the due date, as shown on the body's official website.",cat:"governance",b:"Check the official negotiation schedule. Deadlines in multilateral talks are often missed, so start below the officially planned outcome."},
+ {t:"An outbreak grows past a threshold",q:"Will WHO or a national authority report more than [N] confirmed cases of [outbreak] by [date]?",c:"Resolves yes if the named source reports a cumulative count above N confirmed cases by the due date.",cat:"outbreaks",b:"Compare with the growth of the last 2 to 4 reports and with similar past outbreaks of the same disease."}
 ];
-const PROXY = 'https://corsproxy.io/?';
+const store={
+ load(){try{const s=JSON.parse(localStorage.getItem("psy2")||"null");if(s&&Array.isArray(s.qs))return s}catch(e){}return{qs:[]}},
+ save(){try{localStorage.setItem("psy2",JSON.stringify(S))}catch(e){}},
+ get(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+let S=store.load();
+let NEWS=null,EVENTS=null,ARCH=null,SUGG=[],tab="news",newsCat="",newsQ="";
+const today=()=>new Date().toISOString().slice(0,10);
+const addDays=(d,n)=>{const x=new Date(d+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const isOpen=q=>q.res==null;
+const isDue=q=>isOpen(q)&&q.due<=today();
+const fmtD=d=>{try{return new Date(d+"T00:00:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}catch(e){return d}};
 
-// ── State ──────────────────────────────────────────────────────
-let P        = JSON.parse(localStorage.getItem('psycho_v5')       || '[]');
-let FC       = JSON.parse(localStorage.getItem('psycho_fc')        || '{}');
-let SNAPSHOTS= JSON.parse(localStorage.getItem('psycho_snapshots') || '{}');
-let H = 'week', RH = 'week';
-
-// ── Utils ──────────────────────────────────────────────────────
-function wid(d=new Date()){
-  const t=new Date(d);t.setHours(0,0,0,0);t.setDate(t.getDate()+4-(t.getDay()||7));
-  const y=new Date(t.getFullYear(),0,1);
-  return t.getFullYear()+'-W'+Math.ceil((((t-y)/86400000)+1)/7).toString().padStart(2,'0');
+/* ---------- data ---------- */
+async function loadNews(){
+  if(NEWS) return;
+  try{const r=await fetch(FEEDS_URL);if(!r.ok)throw new Error(r.status);const d=await r.json();NEWS=d.items||[];NEWS.generated=d.generated}
+  catch(e){NEWS=[];NEWS.err=e.message}
+  try{const r=await fetch(EVENTS_URL);if(!r.ok)throw new Error(r.status);EVENTS=(await r.json()).events||[]}catch(e){EVENTS=[]}
 }
-function fmt(iso){return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
-function fmtFull(iso){return new Date(iso).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}
-function fmts(iso){try{return new Date(iso).toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch{return '';}}
-function dueDate(h,c){const d=new Date(c);if(h==='week')d.setDate(d.getDate()+7);else if(h==='month')d.setMonth(d.getMonth()+1);else d.setFullYear(d.getFullYear()+1);return d;}
-function isDue(p){return new Date()>=dueDate(p.h,p.c);}
-function persist(){localStorage.setItem('psycho_v5',JSON.stringify(P));}
-function persistFC(){localStorage.setItem('psycho_fc',JSON.stringify(FC));}
-function persistSnap(){localStorage.setItem('psycho_snapshots',JSON.stringify(SNAPSHOTS));}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-function getKey(){return document.getElementById('api-key').value.trim()||localStorage.getItem('psycho_key')||'';}
-function saveKey(){localStorage.setItem('psycho_key',document.getElementById('api-key').value.trim());}
-
-// ── RSS fetch ──────────────────────────────────────────────────
-async function fetchFeed(feed){
-  const res=await fetch(PROXY+encodeURIComponent(feed.url));
-  if(!res.ok)throw new Error('HTTP '+res.status);
-  const txt=await res.text();
-  const xml=new DOMParser().parseFromString(txt,'application/xml');
-  const WEATHER = /weather|forecast|temperature|rain|snow|wind|storm|sunny|cloudy|humidity|celsius|fahrenheit|degrees|precipitation/i;
-  let items=[...xml.querySelectorAll('entry')].map(e=>({
-    title:(e.querySelector('title')?.textContent||'').replace(/<[^>]+>/g,'').trim(),
-    link: e.querySelector('link')?.getAttribute('href')||'#',
-    date: e.querySelector('published')?.textContent||'',
-  }));
-  if(feed.key==='weekahead') items=items.filter(it=>!WEATHER.test(it.title));
-  return items.slice(0,8);
+function parseCSV(t){
+  t=t.replace(/^﻿/,"");const rows=[];let row=[],f="",q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===","){row.push(f);f=""}
+    else if(c==="\n"){row.push(f);rows.push(row);row=[];f=""}else if(c!=="\r")f+=c}
+  if(f||row.length){row.push(f);rows.push(row)}
+  const h=rows.shift()||[];return rows.filter(r=>r.length>=h.length).map(r=>Object.fromEntries(h.map((k,i)=>[k,r[i]])));
+}
+async function loadArchive(){
+  if(ARCH) return ARCH;
+  try{const r=await fetch(ARCHIVE_URL);if(!r.ok)throw new Error(r.status);ARCH=parseCSV(await r.text()).map(x=>({title:x.titel,url:x.url,src:x.bron,date:(x.gepubliceerd||x.datum_gezien||"").slice(0,10),seen:x.datum_gezien}))}
+  catch(e){ARCH=[]}
+  return ARCH;
 }
 
-async function fetchAll(){
-  const btn=document.getElementById('refresh-btn');
-  const container=document.getElementById('feeds-container');
-  btn.innerHTML='<span class="spinning">🔄</span>';
-  btn.style.pointerEvents='none';
-  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Loading…</div>';
-  let html='';
-  const fetchedAt=new Date().toISOString();
-  const snapshot={fetchedAt,feeds:{}};
-  for(const feed of FEEDS){
-    try{
-      const items=await fetchFeed(feed);
-      FC[feed.key]={items,fetched:fetchedAt};
-      snapshot.feeds[feed.key]=items;
-      html+=renderSection(feed,items);
-    }catch(e){
-      html+=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:10px;padding:12px;font-size:13px;color:var(--miss);margin-bottom:8px;">⚠️ ${feed.label}: ${e.message}</div>`;
-    }
-  }
-  persistFC();
-  const currentWid=wid();
-  if(!SNAPSHOTS[currentWid]){SNAPSHOTS[currentWid]={weekId:currentWid,snapshots:[]};}
-  SNAPSHOTS[currentWid].snapshots.push(snapshot);
-  persistSnap();
-  container.innerHTML=html||'<div class="empty"><div class="i">😶</div>No items found</div>';
-  document.getElementById('fetch-info').textContent='🕐 '+fmtFull(fetchedAt);
-  btn.innerHTML='🔄 Refresh';
-  btn.style.pointerEvents='';
-  toast('Feeds updated ✓');
+/* ---------- Claude ---------- */
+async function claude(system,user,max=2500){
+  const key=store.get("psy2_key","");if(!key)throw new Error("Add your Anthropic API key under Settings first.");
+  const model=store.get("psy2_model","claude-haiku-4-5-20251001");
+  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    headers:{"x-api-key":key,"anthropic-version":"2023-06-01","content-type":"application/json","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model,max_tokens:max,stream:true,system,messages:[{role:"user",content:user}]})});
+  if(!res.ok){const e=await res.text();throw new Error("API "+res.status+": "+e.slice(0,200))}
+  const rd=res.body.getReader(),dec=new TextDecoder();let buf="",out="",stop="";
+  for(;;){const{done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});
+    const lines=buf.split("\n");buf=lines.pop();
+    for(const ln of lines){if(!ln.startsWith("data: "))continue;let j;try{j=JSON.parse(ln.slice(6))}catch(e){continue}
+      if(j.type==="content_block_delta"&&j.delta&&j.delta.type==="text_delta")out+=j.delta.text;
+      if(j.type==="message_delta"&&j.delta&&j.delta.stop_reason)stop=j.delta.stop_reason;
+      if(j.type==="error")throw new Error("API: "+(j.error&&j.error.message||"error"))}}
+  if(!out.trim())throw new Error("Empty answer from the API (model "+model+", stop reason "+(stop||"none")+"). Try another model under Settings.");
+  return out;
+}
+function jsonFrom(t,open,close){const a=t.indexOf(open),b=t.lastIndexOf(close);if(a<0||b<a)throw new Error("Could not read the answer as JSON. Try again.");return JSON.parse(t.slice(a,b+1))}
+
+/* ---------- helpers ---------- */
+function digest(){
+  const items=(NEWS||[]).filter(i=>["who","emerg","global","policy","amr","promed","news"].includes(i.cat)).slice(0,70);
+  return items.map(i=>`- ${(i.date||"").slice(0,10)} [${i.src}] ${i.title}`).join("\n");
+}
+function upcoming(days){
+  const t=today(),e=addDays(t,days);
+  return (EVENTS||[]).filter(x=>["health","gha","amr","eu","partners"].includes(x.cat)&&x.start>=t&&x.start<=e).sort((a,b)=>a.start.localeCompare(b.start));
+}
+const STOP=new Set("will the a an of to in by for and or be is are on at as with from that this than more less before after between new any".split(" "));
+function keywords(q){return[...new Set((q||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)))]}
+function relevant(q,pool,n){
+  const k=keywords(q.q+" "+(q.criteria||""));const from=q.created||"";
+  return pool.map(i=>({i,s:k.reduce((a,w)=>a+((i.title||"").toLowerCase().includes(w)?1:0),0)}))
+    .filter(x=>x.s>0&&(!(x.i.date)||x.i.date>=from)).sort((a,b)=>b.s-a.s||(b.i.date||"").localeCompare(a.i.date||"")).slice(0,n).map(x=>x.i);
 }
 
-function renderSection(feed,items){
-  const rows=items.map(it=>`
-    <div class="news-item">
-      <div class="news-title"><a href="${it.link}" target="_blank">${it.title||'(no title)'}</a></div>
-      <div class="news-date">${it.date?fmts(it.date):''}</div>
-    </div>`).join('');
-  return`<div class="feed-section feed-${feed.key}">
-    <div class="feed-header"><span class="feed-name">${feed.label}</span><span class="feed-count">${items.length} items</span></div>
-    ${rows}</div>`;
+/* ---------- views ---------- */
+function setTab(t){tab=t;render()}
+function render(){
+  const due=S.qs.filter(isDue).length;
+  $("#tabs").innerHTML=[["news","News"],["fc","Forecasts"],["rev","Review"+(due?` <span class="badge">${due}</span>`:"")],["sc","Scores"],["set","Settings"]]
+    .map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" data-t="${k}">${l}</button>`).join("");
+  document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+  $("#banner").innerHTML=due&&tab!=="rev"?`<div class="banner">${due} forecast${due>1?"s are":" is"} due for review. <a href="#" id="gorev">Open the review</a></div>`:"";
+  if($("#gorev"))$("#gorev").onclick=e=>{e.preventDefault();setTab("rev")};
+  ({news:viewNews,fc:viewFc,rev:viewRev,sc:viewScores,set:viewSettings})[tab]();
 }
-
-function loadCache(){
-  if(!Object.keys(FC).length)return;
-  let html='';
-  for(const feed of FEEDS){if(FC[feed.key])html+=renderSection(feed,FC[feed.key].items);}
-  if(html){
-    document.getElementById('feeds-container').innerHTML=html;
-    const last=FC[FEEDS[0].key]?.fetched;
-    if(last)document.getElementById('fetch-info').textContent='🕐 '+fmtFull(last);
-  }
+async function viewNews(){
+  $("#view").innerHTML='<p class="muted">Loading news…</p>';await loadNews();
+  const k=newsQ.toLowerCase();
+  let items=(NEWS||[]).filter(i=>(!newsCat||i.cat===newsCat)&&(!k||((i.title||"")+" "+(i.summary||"")+" "+(i.src||"")).toLowerCase().includes(k))).slice(0,80);
+  const ev=upcoming(60);
+  $("#view").innerHTML=`
+  ${NEWS.err?`<p class="err">Could not load the news feed (${esc(NEWS.err)}).</p>`:`<p class="small muted">${NEWS.length} items from the GH Ribbon feeds, updated ${esc((NEWS.generated||"").replace("T"," ").slice(0,16))} UTC.</p>`}
+  ${ev.length?`<h2>Coming up (next 60 days)</h2><div class="card">${ev.map(x=>`<div class="small"><b>${fmtD(x.start)}</b> · ${esc(x.title)} ${x.src?`<a href="${esc(x.src)}" rel="noopener">source</a>`:""}</div>`).join("")}</div>`:""}
+  <h2>Headlines</h2>
+  <div class="bar"><select id="nc" aria-label="Category">${Object.entries(NEWSCATS).map(([k,v])=>`<option value="${k}" ${k===newsCat?"selected":""}>${v}</option>`).join("")}</select>
+  <input id="nq" type="search" placeholder="Search…" value="${esc(newsQ)}" aria-label="Search"></div>
+  ${items.map(i=>`<div class="news"><a href="${esc(i.url)}" rel="noopener">${esc(i.title)}</a><div class="s">${esc(i.src)} · ${esc((i.date||"").slice(0,10))}</div>${i.summary?`<div class="s">${esc(i.summary).slice(0,220)}</div>`:""}</div>`).join("")||'<p class="muted">Nothing matches.</p>'}`;
+  $("#nc").onchange=e=>{newsCat=e.target.value;viewNews()};
+  $("#nq").oninput=e=>{newsQ=e.target.value;clearTimeout(window._t);window._t=setTimeout(()=>{viewNews().then(()=>{const el=$("#nq");el.focus();el.setSelectionRange(99,99)})},250)};
 }
-
-// ── Build digest for Claude ────────────────────────────────────
-function buildDigest(){
-  let d='';
-  for(const feed of FEEDS){
-    const items=FC[feed.key]?.items||[];
-    if(!items.length)continue;
-    d+=`\n## ${feed.label}\n`;
-    items.slice(0,5).forEach(it=>{d+=`- ${it.title}\n`;});
-  }
-  return d;
+function pct(v){return v==null||v===""?"–":v+"%"}
+function qCard(q,extra){
+  return `<div class="card" data-id="${q.id}"><div class="q">${esc(q.q)}</div>
+  <div class="meta"><span class="tag">${esc(CATS[q.cat]||q.cat)}</span>due ${fmtD(q.due)} · created ${fmtD(q.created)}${q.src==="claude"?" · suggested by Claude":""}</div>
+  ${q.criteria?`<div class="small"><b>Resolves yes if:</b> ${esc(q.criteria)}</div>`:""}
+  <div class="row" style="margin:6px 0"><span class="pill">Me: <b>${pct(q.pMe)}</b></span><span class="pill">Claude: <b>${pct(q.pCl)}</b></span></div>
+  ${q.base?`<div class="small muted"><b>Base rate:</b> ${esc(q.base)}</div>`:""}
+  ${q.why?`<div class="small muted"><b>Reasoning:</b> ${esc(q.why)}</div>`:""}
+  ${q.change?`<div class="small muted"><b>Would change my mind:</b> ${esc(q.change)}</div>`:""}
+  ${extra||""}</div>`;
 }
-
-// ── Claude API (streaming) ─────────────────────────────────────
-async function callClaude(system,user,onChunk){
-  const key=getKey();
-  if(!key){toast('Add API key in Stats tab first!');throw new Error('No API key');}
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'x-api-key':key,'anthropic-version':'2023-06-01','content-type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1200,stream:true,system,messages:[{role:'user',content:user}]})
+function viewFc(){
+  const open=S.qs.filter(isOpen).sort((a,b)=>a.due.localeCompare(b.due));
+  $("#view").innerHTML=`
+  <div class="bar"><button class="btn pri" id="gen">Suggest questions with Claude</button><span id="genst" class="small muted"></span></div>
+  <div id="sugg"></div>
+  <details class="card"><summary><b>Add your own forecast</b></summary>
+    <label class="f">Start from a template</label><select id="tpl"><option value="">Blank</option>${TEMPLATES.map((t,i)=>`<option value="${i}">${esc(t.t)}</option>`).join("")}</select>
+    <label class="f">Question (yes/no, checkable)</label><textarea id="nq1"></textarea>
+    <label class="f">Resolves yes if… (write this now, so it cannot drift)</label><textarea id="nc1"></textarea>
+    <div class="row"><div><label class="f">Category</label><select id="ncat">${Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
+    <div><label class="f">Due date</label><input id="ndue" type="date" value="${addDays(today(),90)}" min="${addDays(today(),1)}"></div>
+    <div><label class="f">My probability (1–99%)</label><input id="np" type="number" min="1" max="99" style="width:90px"></div></div>
+    <label class="f">Base rate or reference class</label><textarea id="nb"></textarea>
+    <p><button class="btn pri" id="save">Save forecast</button> <span id="savest" class="small"></span></p>
+  </details>
+  <h2>Open forecasts (${open.length})</h2>
+  ${open.map(q=>qCard(q,`<div class="row"><button class="btn yes" data-r="yes">Resolved yes</button><button class="btn no" data-r="no">Resolved no</button><button class="btn" data-r="void">Void</button><button class="btn" data-r="del">Delete</button></div>`)).join("")||'<p class="muted">No open forecasts yet. Ask Claude for suggestions or add your own.</p>'}`;
+  $("#gen").onclick=generate;
+  $("#tpl").onchange=e=>{const t=TEMPLATES[e.target.value];if(!t)return;$("#nq1").value=t.q;$("#nc1").value=t.c;$("#ncat").value=t.cat;$("#nb").value=t.b};
+  $("#save").onclick=()=>{
+    const q=$("#nq1").value.trim(),c=$("#nc1").value.trim(),p=parseInt($("#np").value,10),due=$("#ndue").value;
+    if(!q||!c||!due||!(p>=1&&p<=99)){$("#savest").className="small err";$("#savest").textContent="Fill in question, resolution criteria, due date and a probability from 1 to 99.";return}
+    S.qs.push({id:uid(),q,criteria:c,cat:$("#ncat").value,due,created:today(),pMe:p,pCl:null,base:$("#nb").value.trim(),src:"me",res:null});store.save();render();
+  };
+  bindActions();renderSugg();
+}
+function bindActions(){
+  document.querySelectorAll(".card[data-id] [data-r]").forEach(b=>b.onclick=()=>{
+    const id=b.closest(".card").dataset.id,q=S.qs.find(x=>x.id===id);if(!q)return;const r=b.dataset.r;
+    if(r==="del"){if(!confirm("Delete this forecast?"))return;S.qs=S.qs.filter(x=>x.id!==id)}
+    else{q.res=r;q.resAt=today();if(q.proposal&&q.proposal.evidence&&!q.evidence)q.evidence=q.proposal.evidence}
+    store.save();render();
   });
-  if(!res.ok){const e=await res.text();throw new Error('API '+res.status+': '+e.slice(0,120));}
-  const reader=res.body.getReader();const decoder=new TextDecoder();let buf='';
-  while(true){
-    const{done,value}=await reader.read();if(done)break;
-    buf+=decoder.decode(value,{stream:true});
-    const lines=buf.split('\n');buf=lines.pop();
-    for(const line of lines){
-      if(!line.startsWith('data: '))continue;
-      const data=line.slice(6);if(data==='[DONE]')continue;
-      try{const j=JSON.parse(data);if(j.type==='content_block_delta'&&j.delta?.text)onChunk(j.delta.text);}catch{}
-    }
-  }
 }
-
-// ── Agenda ─────────────────────────────────────────────────────
-async function generateAgenda(){
-  const btn=document.getElementById('agenda-btn');
-  const container=document.getElementById('agenda-container');
-  const digest=buildDigest();
-  if(!digest.trim()){toast('Refresh feeds first!');return;}
-  btn.innerHTML='<span class="spinning">✨</span>';btn.style.pointerEvents='none';
-  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating…</div>';
-  const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const system='You are a world affairs analyst. Identify key scheduled events and issues to watch in the coming week. Pay special attention to items from the Week Ahead feed as these are explicitly flagged as upcoming events.';
-  const user=`Today is ${today}. Based on these headlines, identify 6-8 key agenda items for next week. The "Week Ahead" section contains explicitly scheduled upcoming events — prioritise these.\n\nFor each:\nCATEGORY: [politics/economics/science/culture/weekahead]\nTITLE: [short title]\nWHAT TO WATCH: [1-2 sentences]\n---\n\nHeadlines:\n${digest}`;
-  let full='';
-  container.innerHTML='<div id="agenda-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
-  const el=document.getElementById('agenda-stream');
+async function generate(){
+  const st=$("#genst"),btn=$("#gen");btn.disabled=true;st.className="small muted";st.textContent="Reading the news and asking Claude…";
   try{
-    await callClaude(system,user,chunk=>{full+=chunk;el.innerHTML=full.replace(/\n/g,'<br>')+'<span class="cursor"></span>';});
-    renderAgendaFinal(full,container);
-    const ts=new Date().toISOString();
-    document.getElementById('agenda-info').textContent='🕐 '+fmtFull(ts);
-    const cw=wid();
-    if(!SNAPSHOTS[cw])SNAPSHOTS[cw]={weekId:cw,snapshots:[]};
-    SNAPSHOTS[cw].agendaText=full;
-    SNAPSHOTS[cw].agendaTs=ts;
-    persistSnap();
-  }catch(e){container.innerHTML=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:12px;padding:14px;color:var(--miss);font-size:13px;">❌ ${e.message}</div>`;}
-  btn.innerHTML='✨ Generate';btn.style.pointerEvents='';
+    await loadNews();
+    const ev=upcoming(180).map(x=>`- ${x.start} ${x.title}`).join("\n")||"(none)";
+    const have=S.qs.filter(isOpen).map(q=>"- "+q.q).join("\n")||"(none)";
+    const sys="You are a forecaster in the style of the Good Judgment Project, working on global health and health diplomacy. You write sharp, checkable yes/no questions and give calibrated probabilities. You use the outside view first (base rates and reference classes), then adjust for specifics. Your own knowledge can be out of date: rely on the headlines and calendar given, and say so when you assume something. Answer with JSON only.";
+    const user=`Today is ${today()}.\n\nRecent headlines:\n${digest()}\n\nScheduled events in the next 6 months:\n${ev}\n\nOpen questions already tracked (do not repeat):\n${have}\n\nWrite 6 new forecasting questions: 2 that resolve within a month, 2 within three months, 2 within twelve months. Each must be binary, resolvable from public sources, specific about numbers, bodies and dates, and not nearly certain either way.\n\nReturn a JSON array. Each item has: "question", "criteria" (exact condition for yes, with the source to check), "category" (one of: ${Object.keys(CATS).join(", ")}), "due" (YYYY-MM-DD, after ${addDays(today(),6)}), "base_rate" (reference class and frequency, or "no good reference class"), "p" (integer 1 to 99), "reasoning" (two sentences), "would_change" (one sentence).`;
+    const out=await claude(sys,user,3500);
+    SUGG=jsonFrom(out,"[","]").filter(x=>x&&x.question&&x.criteria&&x.due>today()).map(x=>({id:uid(),q:String(x.question),criteria:String(x.criteria),cat:CATS[x.category]?x.category:"other",due:String(x.due).slice(0,10),base:String(x.base_rate||""),pCl:Math.min(99,Math.max(1,Math.round(+x.p)||50)),why:String(x.reasoning||""),change:String(x.would_change||"")}));
+    st.textContent=SUGG.length?"":"Claude returned no usable questions. Try again.";renderSugg();
+  }catch(e){st.className="small err";st.textContent=e.message}
+  btn.disabled=false;
 }
-
-function getCatKey(s){
-  s=s.toLowerCase();
-  if(s.includes('week'))return'weekahead';
-  if(s.includes('culture')||s.includes('art'))return'culture';
-  if(s.includes('econ'))return'economics';
-  if(s.includes('polit'))return'politics';
-  return'science';
+function renderSugg(){
+  const el=$("#sugg");if(!el)return;
+  el.innerHTML=SUGG.length?`<h2>Suggestions</h2><p class="small muted">Enter your own probability first. Claude's estimate is shown after you save, so it does not anchor you.</p>`+SUGG.map(s=>`<div class="card" data-s="${s.id}"><div class="q">${esc(s.q)}</div>
+  <div class="meta"><span class="tag">${esc(CATS[s.cat])}</span>due ${fmtD(s.due)}</div>
+  <div class="small"><b>Resolves yes if:</b> ${esc(s.criteria)}</div>
+  ${s.base?`<div class="small muted"><b>Base rate:</b> ${esc(s.base)}</div>`:""}
+  <div class="row" style="margin-top:8px"><label class="small">My probability <input type="number" min="1" max="99" class="sp" style="width:80px"></label>
+  <button class="btn pri" data-a="save">Save</button><button class="btn" data-a="cl">Save without my own</button><button class="btn" data-a="skip">Skip</button></div></div>`).join(""):"";
+  el.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+    const c=b.closest(".card"),s=SUGG.find(x=>x.id===c.dataset.s);if(!s)return;const a=b.dataset.a;
+    if(a!=="skip"){
+      const p=parseInt(c.querySelector(".sp").value,10);
+      if(a==="save"&&!(p>=1&&p<=99)){c.querySelector(".sp").focus();return}
+      S.qs.push({id:uid(),q:s.q,criteria:s.criteria,cat:s.cat,due:s.due,created:today(),pMe:a==="save"?p:null,pCl:s.pCl,base:s.base,why:s.why,change:s.change,src:"claude",res:null});store.save();
+    }
+    SUGG=SUGG.filter(x=>x.id!==s.id);a==="skip"?renderSugg():render();
+  });
 }
-
-function renderAgendaFinal(text,container){
-  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
-  let html='';
-  for(const block of blocks){
-    const cm=block.match(/CATEGORY:\s*(.+)/i);
-    const tm=block.match(/TITLE:\s*(.+)/i);
-    const wm=block.match(/WHAT TO WATCH:\s*([\s\S]+)/i);
-    if(!tm)continue;
-    const cat=cm?getCatKey(cm[1]):'politics';
-    html+=`<div class="agenda-item ${cat}">
-      <div class="agenda-cat">${FEEDS.find(f=>f.key===cat)?.label||cat}</div>
-      <div class="agenda-title">${tm[1].trim()}</div>
-      ${wm?`<div class="agenda-desc">${wm[1].trim()}</div>`:''}
-    </div>`;
-  }
-  container.innerHTML=html||`<div class="card" style="font-size:13px;line-height:1.6">${text}</div>`;
+async function viewRev(){
+  const due=S.qs.filter(isDue).sort((a,b)=>a.due.localeCompare(b.due));
+  const later=S.qs.filter(q=>isOpen(q)&&!isDue(q)).length;
+  const done=S.qs.filter(q=>!isOpen(q)).sort((a,b)=>(b.resAt||"").localeCompare(a.resAt||"")).slice(0,12);
+  $("#view").innerHTML=`<p class="lead">Questions whose due date has passed. Claude can look through the news archive and propose an outcome; you decide. ${later} more forecast${later===1?"":"s"} not due yet.</p>
+  ${due.map(q=>qCard(q,`<div id="p-${q.id}">${proposalHTML(q)}</div><div class="row"><button class="btn" data-ck="${q.id}">Ask Claude to check the news</button><button class="btn yes" data-r="yes">Resolved yes</button><button class="btn no" data-r="no">Resolved no</button><button class="btn" data-r="void">Void</button></div>`)).join("")||'<div class="card muted">Nothing is due for review.</div>'}
+  <h2>Recently resolved</h2>${done.map(q=>`<div class="card"><div class="q">${esc(q.q)}</div><div class="meta">${q.res==="void"?"Void":"Resolved <b>"+q.res+"</b>"} on ${fmtD(q.resAt||q.due)} · me ${pct(q.pMe)} · Claude ${pct(q.pCl)}</div>${q.evidence?`<div class="small muted">${esc(q.evidence)}</div>`:""}<button class="btn small" data-undo="${q.id}">Reopen</button></div>`).join("")||'<p class="muted">None yet.</p>'}`;
+  bindActions();
+  document.querySelectorAll("[data-undo]").forEach(b=>b.onclick=()=>{const q=S.qs.find(x=>x.id===b.dataset.undo);if(q){q.res=null;delete q.resAt;store.save();render()}});
+  document.querySelectorAll("[data-ck]").forEach(b=>b.onclick=()=>check(b.dataset.ck,b));
 }
-
-// ── Predictions ────────────────────────────────────────────────
-async function generatePredictions(){
-  const btn=document.getElementById('gen-btn');
-  const container=document.getElementById('ai-predictions');
-  const digest=buildDigest();
-  if(!digest.trim()){toast('Refresh feeds first!');return;}
-  btn.innerHTML='<span class="spinning">🤖</span>';btn.style.pointerEvents='none';
-  container.innerHTML='<div class="empty"><div class="i" style="font-size:24px">⏳</div>Generating predictions…</div>';
-  const today=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const system='You are a geopolitical analyst. Make specific, falsifiable predictions with calibrated confidence.';
-  const user=`Today is ${today}. Generate 8 predictions: 2 for next week, 2 for next month, 2 for next year, 2 wildcards.\n\nFor each:\nHORIZON: [week/month/year/wildcard]\nCATEGORY: [politics/economics/science/culture/weekahead]\nCONFIDENCE: [LOW/MEDIUM/HIGH]\nPREDICTION: [specific, falsifiable]\n---\n\nHeadlines:\n${digest}`;
-  let full='';
-  container.innerHTML='<div id="pred-stream" style="font-size:13px;line-height:1.6;color:var(--muted);padding:4px"></div>';
-  const el=document.getElementById('pred-stream');
+function proposalHTML(q){
+  const p=q.proposal;if(!p)return"";
+  const links=(p.urls||[]).map(u=>`<a href="${esc(u)}" rel="noopener">source</a>`).join(" · ");
+  return `<div class="banner"><b>Claude proposes: ${esc(p.verdict)}.</b> ${esc(p.evidence)} ${links}</div>`;
+}
+async function check(id,btn){
+  const q=S.qs.find(x=>x.id===id);if(!q)return;const box=$("#p-"+id);
+  btn.disabled=true;box.innerHTML='<p class="small muted">Searching the archive and asking Claude…</p>';
   try{
-    await callClaude(system,user,chunk=>{full+=chunk;el.innerHTML=full.replace(/\n/g,'<br>')+'<span class="cursor"></span>';});
-    renderPredsFinal(full,container);
-    document.getElementById('pred-info').textContent='🕐 '+fmtFull(new Date().toISOString());
-  }catch(e){container.innerHTML=`<div style="background:rgba(248,113,113,.1);border:1px solid var(--miss);border-radius:12px;padding:14px;color:var(--miss);font-size:13px;">❌ ${e.message}</div>`;}
-  btn.innerHTML='🤖 Generate';btn.style.pointerEvents='';
+    await loadNews();const arch=await loadArchive();
+    const pool=arch.concat((NEWS||[]).map(i=>({title:i.title,url:i.url,src:i.src,date:(i.date||"").slice(0,10)})));
+    const seen=new Set(),uniq=pool.filter(i=>i.url&&!seen.has(i.url)&&seen.add(i.url));
+    const hits=relevant(q,uniq,40);
+    if(!hits.length){box.innerHTML='<div class="banner">No matching headlines in the archive. Check the source in the criteria yourself.</div>';btn.disabled=false;return}
+    const list=hits.map((h,i)=>`[${i+1}] ${h.date} ${h.src}: ${h.title}`).join("\n");
+    const sys="You check forecasting questions against headlines. Be strict: answer yes or no only when the headlines clearly show the resolution condition was met or clearly not met by the due date; otherwise answer unclear. Answer with JSON only.";
+    const user=`Today is ${today()}.\nQuestion: ${q.q}\nResolves yes if: ${q.criteria}\nDue date: ${q.due}\n\nHeadlines (numbered):\n${list}\n\nReturn JSON: {"verdict":"yes"|"no"|"unclear","evidence":"two sentences citing headline numbers like [3]","used":[numbers]}`;
+    const out=await claude(sys,user,900);const j=jsonFrom(out,"{","}");
+    q.proposal={verdict:String(j.verdict||"unclear"),evidence:String(j.evidence||""),urls:(j.used||[]).map(n=>hits[n-1]&&hits[n-1].url).filter(Boolean).slice(0,4),at:today()};store.save();
+    box.innerHTML=proposalHTML(q)+'<p class="small muted">Headline-based, so confirm at the source before you resolve.</p>';
+  }catch(e){box.innerHTML=`<p class="small err">${esc(e.message)}</p>`}
+  btn.disabled=false;
 }
-
-function renderPredsFinal(text,container){
-  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
-  let html='';
-  for(const block of blocks){
-    const hm=block.match(/HORIZON:\s*(.+)/i);
-    const cm=block.match(/CATEGORY:\s*(.+)/i);
-    const cfm=block.match(/CONFIDENCE:\s*(.+)/i);
-    const pm=block.match(/PREDICTION:\s*([\s\S]+)/i);
-    if(!pm)continue;
-    const h=hm?hm[1].trim().toLowerCase():'week';
-    const cat=cm?getCatKey(cm[1]):'politics';
-    const cf=(cfm?cfm[1].trim():'MEDIUM').toUpperCase();
-    const pred=pm[1].trim();
-    const cfColor=cf==='HIGH'?'var(--hit)':cf==='LOW'?'var(--miss)':'var(--partial)';
-    const hl={week:'Next week',month:'Next month',year:'Next year',wildcard:'🃏 Wildcard'}[h]||'Next week';
-    const enc=encodeURIComponent(pred);
-    const horizon=h==='wildcard'?'month':h;
-    html+=`<div class="pred-ai">
-      <div class="pred-ai-header">
-        <span class="tag tag-${cat}">${FEEDS.find(f=>f.key===cat)?.label||cat}</span>
-        <span style="font-size:11px;font-weight:700;color:${cfColor}">${cf}</span>
-      </div>
-      <div class="pred-ai-text">${pred}</div>
-      <div class="pred-ai-meta">
-        <span>🕐 ${hl}</span>
-        <button onclick="saveAIPred('${enc}','${cat}','${horizon}')" style="padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--accent2);font-size:11px;font-weight:600;cursor:pointer;">+ Save</button>
-      </div>
-    </div>`;
-  }
-  container.innerHTML=html||`<div class="card" style="font-size:13px;line-height:1.6">${text}</div>`;
+/* ---------- scores ---------- */
+function brier(arr,key){const a=arr.filter(q=>q[key]!=null);if(!a.length)return null;return a.reduce((s,q)=>s+Math.pow(q[key]/100-(q.res==="yes"?1:0),2),0)/a.length}
+function f3(x){return x==null?"–":x.toFixed(3)}
+function calib(arr,key){
+  const bins=Array.from({length:10},(_,i)=>({lo:i*10,n:0,sp:0,sy:0}));
+  arr.filter(q=>q[key]!=null).forEach(q=>{const b=bins[Math.min(9,Math.floor(q[key]/10))];b.n++;b.sp+=q[key];b.sy+=q.res==="yes"?1:0});
+  return bins;
 }
-
-function saveAIPred(enc,cat,h){
-  const txt=decodeURIComponent(enc);
-  const now=new Date().toISOString();
-  P.unshift({id:Date.now(),t:txt,cat,h,c:now,wid:wid(),s:null,ai:true});
-  persist();renderNew();toast('AI prediction saved ✓ — '+fmtFull(now));
+function chart(bins){
+  const W=320,H=240,P=30;const x=v=>P+v/100*(W-P-10),y=v=>H-P-v/100*(H-P-10);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration chart" style="max-width:360px;width:100%"><line x1="${x(0)}" y1="${y(0)}" x2="${x(100)}" y2="${y(100)}" stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4"/><line x1="${P}" y1="${y(0)}" x2="${W-10}" y2="${y(0)}" stroke="currentColor" stroke-opacity=".4"/><line x1="${P}" y1="${y(0)}" x2="${P}" y2="${y(100)}" stroke="currentColor" stroke-opacity=".4"/>`;
+  [0,50,100].forEach(v=>{s+=`<text x="${x(v)}" y="${H-12}" text-anchor="middle">${v}</text><text x="${P-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`});
+  s+=`<text x="${(W+P)/2}" y="${H-1}" text-anchor="middle">forecast %</text><text x="8" y="${H/2}" transform="rotate(-90 8 ${H/2})" text-anchor="middle">happened %</text>`;
+  bins.filter(b=>b.n).forEach(b=>{const fp=b.sp/b.n,ob=b.sy/b.n*100;s+=`<circle cx="${x(fp)}" cy="${y(ob)}" r="${3+Math.min(9,b.n)}" fill="var(--accent)" fill-opacity=".75"><title>${b.n} forecasts around ${Math.round(fp)}%, ${Math.round(ob)}% happened</title></circle>`});
+  return s+"</svg>";
 }
-
-// ── Manual predictions ─────────────────────────────────────────
-function setH(h,el){H=h;document.querySelectorAll('#screen-predict .htab').forEach(t=>t.classList.remove('active'));el.classList.add('active');}
-function setRH(h,el){RH=h;document.querySelectorAll('#screen-review .htab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderR();}
-
-function savePred(){
-  const txt=document.getElementById('ptxt').value.trim();
-  if(!txt){toast('Write a prediction first!');return;}
-  const now=new Date().toISOString();
-  P.unshift({id:Date.now(),t:txt,cat:document.getElementById('pred-cat').value,h:H,c:now,wid:wid(),s:null,ai:false});
-  persist();document.getElementById('ptxt').value='';renderNew();toast('Saved — '+fmtFull(now));
+function viewScores(){
+  const res=S.qs.filter(q=>q.res==="yes"||q.res==="no");
+  const bm=brier(res,"pMe"),bc=brier(res,"pCl");
+  const both=res.filter(q=>q.pMe!=null&&q.pCl!=null);
+  const byCat=Object.keys(CATS).map(k=>{const a=res.filter(q=>q.cat===k);return a.length?`<tr><td>${esc(CATS[k])}</td><td class="n">${a.length}</td><td class="n">${f3(brier(a,"pMe"))}</td><td class="n">${f3(brier(a,"pCl"))}</td></tr>`:""}).join("");
+  const sel=window._cal||"pMe";
+  $("#view").innerHTML=`<p class="lead">Brier score: the mean squared gap between your probability and what happened (1 = yes, 0 = no). Lower is better. Always saying 50% scores 0.250.</p>
+  <div class="grid"><div class="stat"><b>${S.qs.length}</b>forecasts</div><div class="stat"><b>${res.length}</b>resolved (yes/no)</div><div class="stat"><b>${f3(bm)}</b>Brier, me</div><div class="stat"><b>${f3(bc)}</b>Brier, Claude</div><div class="stat"><b>${f3(brier(both,"pMe"))} / ${f3(brier(both,"pCl"))}</b>me / Claude on the ${both.length} both answered</div></div>
+  ${res.length<10?`<div class="note">With fewer than about 10 resolved forecasts these numbers say little. Keep going.</div>`:""}
+  <h2>Calibration</h2><div class="bar"><select id="cs"><option value="pMe" ${sel==="pMe"?"selected":""}>Me</option><option value="pCl" ${sel==="pCl"?"selected":""}>Claude</option></select><span class="small muted">On the diagonal means well calibrated. Dot size is the number of forecasts.</span></div>
+  ${chart(calib(res,sel))}
+  <h2>By category</h2>${byCat?`<table><thead><tr><th>Category</th><th class="n">Resolved</th><th class="n">Me</th><th class="n">Claude</th></tr></thead><tbody>${byCat}</tbody></table>`:'<p class="muted">Nothing resolved yet.</p>'}`;
+  $("#cs").onchange=e=>{window._cal=e.target.value;viewScores()};
 }
-
-function card(p,showScore){
-  const hl={week:'Next week',month:'Next month',year:'Next year'}[p.h]||p.h;
-  const feed=FEEDS.find(f=>f.key===p.cat)||FEEDS[0];
-  let badge='';
-  if(p.s){const lb={hit:'✅ Hit',partial:'〰️ Partial',miss:'❌ Miss'};const cl={hit:'badge-hit',partial:'badge-partial',miss:'badge-miss'};badge=`<span class="badge ${cl[p.s]}">${lb[p.s]}</span>`;}
-  const aiBadge=p.ai?'<span class="ai-badge">🤖 AI</span>':'';
-  const btns=showScore?`<div class="sbtns">
-    <button class="sbtn hit" onclick="scoreIt(${p.id},'hit')">✅ Hit</button>
-    <button class="sbtn partial" onclick="scoreIt(${p.id},'partial')">〰️ Partial</button>
-    <button class="sbtn miss" onclick="scoreIt(${p.id},'miss')">❌ Miss</button>
-  </div>`:'';
-  return`<div class="pitem">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><span class="tag tag-${p.cat}">${feed.label}</span>${aiBadge}</div>${badge}
-    </div>
-    <div class="ptext">${p.t}</div>
-    <div class="pmeta">
-      <div>🕐 ${hl} · Due ${fmt(dueDate(p.h,p.c).toISOString())}</div>
-      <div style="margin-top:3px">📅 Saved ${fmtFull(p.c)} · ${p.wid}</div>
-    </div>
-    ${btns}
-  </div>`;
+function viewSettings(){
+  $("#view").innerHTML=`<h2>Claude API key</h2><p class="small muted">Stored in this browser only and sent only to Anthropic. Needed for suggestions and for checking outcomes.</p>
+  <div class="bar"><input id="key" type="password" placeholder="sk-ant-…" style="min-width:260px" value="${esc(store.get("psy2_key",""))}"><select id="mdl">${Object.entries(MODELS).map(([k,v])=>`<option value="${k}" ${k===store.get("psy2_model","claude-haiku-4-5-20251001")?"selected":""}>${v}</option>`).join("")}</select></div>
+  <h2>Your data</h2><div class="bar"><button class="btn" id="exp">Export JSON</button><label class="btn">Import JSON<input id="imp" type="file" accept=".json" class="hidden"></label><button class="btn" id="clr">Delete everything</button></div><div id="setst" class="small"></div>
+  <div class="note">Forecasts live only in this browser. Export a copy now and then; clearing site data deletes them.</div>`;
+  $("#key").oninput=e=>store.set("psy2_key",e.target.value.trim());
+  $("#mdl").onchange=e=>store.set("psy2_model",e.target.value);
+  $("#exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:"application/json"}));a.download="psychohistory-"+today()+".json";a.click()};
+  $("#imp").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!Array.isArray(j.qs))throw new Error("no forecasts found");const ids=new Set(S.qs.map(q=>q.id));let n=0;j.qs.forEach(q=>{if(q&&q.id&&q.q&&!ids.has(q.id)){S.qs.push(q);n++}});store.save();$("#setst").textContent=n+" forecasts imported."}catch(err){$("#setst").className="small err";$("#setst").textContent="Import failed: "+err.message}};
+  $("#clr").onclick=()=>{if(confirm("Delete all forecasts from this browser?")){S={qs:[]};store.save();render()}};
 }
-
-function renderNew(){const el=document.getElementById('newlist');el.innerHTML=P.length?P.map(p=>card(p,false)).join(''):'<div class="empty"><div class="i">🔮</div>No predictions yet</div>';}
-function renderR(){const el=document.getElementById('rlist');const d=P.filter(p=>p.h===RH&&isDue(p)&&!p.s);el.innerHTML=d.length?d.map(p=>card(p,true)).join(''):'<div class="empty"><div class="i">✅</div>No unscored predictions due yet</div>';}
-function scoreIt(id,s){const p=P.find(x=>x.id===id);if(p){p.s=s;persist();}renderR();renderS();toast('Scored!');}
-
-// ── History ────────────────────────────────────────────────────
-function renderHistory(){
-  const container=document.getElementById('history-container');
-  const allWids=new Set([...Object.keys(SNAPSHOTS),...P.map(p=>p.wid)]);
-  const sorted=[...allWids].sort().reverse();
-  if(!sorted.length){container.innerHTML='<div class="empty"><div class="i">📚</div>Your weekly history will build up here</div>';return;}
-  let html='';
-  for(const w of sorted){
-    const snap=SNAPSHOTS[w];
-    const preds=P.filter(p=>p.wid===w);
-    const latestFetch=snap?.snapshots?.[snap.snapshots.length-1]?.fetchedAt||snap?.fetchedAt;
-    const agendaTs=snap?.agendaTs;
-    const subParts=[];
-    if(latestFetch)subParts.push('📡 '+fmt(latestFetch));
-    subParts.push(`🔮 ${preds.length} prediction${preds.length!==1?'s':''}`);
-    const scored=preds.filter(p=>p.s);
-    if(scored.length){
-      const hits=scored.filter(p=>p.s==='hit').length;
-      const parts=scored.filter(p=>p.s==='partial').length;
-      const pct=Math.round((hits+parts*.5)/scored.length*100);
-      subParts.push(`📊 ${pct}% accuracy`);
-    }
-    html+=`<div class="week-entry" id="we-${w}">
-      <div class="week-entry-header" onclick="toggleWeek('${w}')">
-        <div>
-          <div class="week-entry-title">${w}</div>
-          <div class="week-entry-sub">${subParts.join(' · ')}</div>
-        </div>
-        <span class="week-entry-chevron">›</span>
-      </div>
-      <div class="week-entry-body">${buildWeekBody(w,snap,preds,agendaTs)}</div>
-    </div>`;
-  }
-  container.innerHTML=html;
-}
-
-function buildWeekBody(w,snap,preds,agendaTs){
-  let html='';
-  if(snap?.snapshots?.length){
-    const latest=snap.snapshots[snap.snapshots.length-1];
-    html+=`<div class="history-section-label">📡 News digest</div>`;
-    html+=`<div class="ts-chip">📅 ${fmtFull(latest.fetchedAt)}</div>`;
-    for(const feed of FEEDS){
-      const items=latest.feeds?.[feed.key]||[];
-      if(!items.length)continue;
-      html+=`<div style="margin-bottom:12px">
-        <div class="feed-name feed-${feed.key}" style="font-size:13px;margin-bottom:6px">${feed.label}</div>
-        ${items.map(it=>`<div class="news-item"><div class="news-title"><a href="${it.link}" target="_blank">${it.title}</a></div><div class="news-date">${it.date?fmts(it.date):''}</div></div>`).join('')}
-      </div>`;
-    }
-  }
-  if(snap?.agendaText){
-    html+=`<div class="history-section-label">🗓️ Agenda generated</div>`;
-    if(agendaTs)html+=`<div class="ts-chip">📅 ${fmtFull(agendaTs)}</div>`;
-    html+=`<div style="margin-top:8px">${buildAgendaCompact(snap.agendaText)}</div>`;
-  }
-  if(preds.length){
-    html+=`<div class="history-section-label">🔮 Predictions (${preds.length})</div>`;
-    html+=preds.map(p=>card(p,false)).join('');
-  }
-  if(!html)html='<div style="color:var(--muted);font-size:13px;padding:8px 0">No data recorded this week yet.</div>';
-  return html;
-}
-
-function buildAgendaCompact(text){
-  const blocks=text.split('---').map(b=>b.trim()).filter(Boolean);
-  return blocks.map(block=>{
-    const tm=block.match(/TITLE:\s*(.+)/i);
-    const cm=block.match(/CATEGORY:\s*(.+)/i);
-    if(!tm)return'';
-    const cat=cm?getCatKey(cm[1]):'politics';
-    return`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><span class="tag tag-${cat}" style="margin-bottom:0;margin-right:6px">${FEEDS.find(f=>f.key===cat)?.label||cat}</span>${tm[1].trim()}</div>`;
-  }).join('');
-}
-
-function toggleWeek(w){document.getElementById('we-'+w).classList.toggle('open');}
-
-// ── Stats ──────────────────────────────────────────────────────
-function bar(pct){return`<div class="pbar"><div class="pfill" style="width:${pct}%"></div></div>`;}
-function acc(arr){if(!arr.length)return null;return Math.round((arr.filter(p=>p.s==='hit').length+arr.filter(p=>p.s==='partial').length*.5)/arr.length*100);}
-
-function renderS(){
-  document.getElementById('stotal').textContent=P.length;
-  const sc=P.filter(p=>p.s);document.getElementById('sscored').textContent=sc.length;
-  const a=acc(sc);document.getElementById('sacc').textContent=a!==null?a+'%':'—';
-  document.getElementById('catstat').innerHTML=FEEDS.map(f=>{
-    const ps=P.filter(p=>p.cat===f.key),s=ps.filter(p=>p.s);
-    if(!s.length)return`<div style="margin-bottom:10px"><span class="tag tag-${f.key}">${f.label}</span><span style="color:var(--muted);font-size:12px;margin-left:8px">${ps.length} predictions</span></div>`;
-    const pct=acc(s);
-    return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="tag tag-${f.key}">${f.label}</span><span style="font-size:12px;color:var(--muted)">${pct}% · ${s.length} scored</span></div>${bar(pct)}</div>`;
-  }).join('');
-  document.getElementById('horstat').innerHTML=['week','month','year'].map(h=>{
-    const ps=P.filter(p=>p.h===h),s=ps.filter(p=>p.s);
-    const lbl={week:'Next week',month:'Next month',year:'Next year'}[h];
-    if(!s.length)return`<div style="margin-bottom:10px;font-size:13px;color:var(--muted)">${lbl}: ${ps.length} predictions</div>`;
-    const pct=acc(s);
-    return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;font-weight:600;color:var(--text)">${lbl}</span><span style="font-size:12px;color:var(--muted)">${pct}% · ${s.length} scored</span></div>${bar(pct)}</div>`;
-  }).join('');
-}
-
-// ── Nav ────────────────────────────────────────────────────────
-function showScreen(id,el){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
-  el.classList.add('active');
-  if(id==='review')renderR();
-  if(id==='stats')renderS();
-  if(id==='history')renderHistory();
-}
-
-function exportD(){
-  const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech',weekahead:'Week Ahead'};
-  const txt=P.map(p=>`[${fmtFull(p.c)}] [${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}`).join('\n');
-  navigator.clipboard.writeText(txt).then(()=>toast('Copied!'));
-}
-function downloadTxt(){
-  const lbl={culture:'Art & Culture',economics:'Economics',politics:'Politics',science:'Science & Tech',weekahead:'Week Ahead'};
-  const date=new Date().toISOString().slice(0,10);
-  const currentWid=wid();
-  const snap=SNAPSHOTS[currentWid];
-  let out=`PSYCHOHISTORY — ${date} (${currentWid})\n${'='.repeat(40)}\n\n`;
-  // News
-  if(snap?.snapshots?.length){
-    out+=`NEWS\n${'-'.repeat(20)}\n`;
-    const latest=snap.snapshots[snap.snapshots.length-1];
-    for(const feed of FEEDS){
-      const items=latest.feeds?.[feed.key]||[];
-      if(!items.length)continue;
-      out+=`\n${feed.label}\n`;
-      items.forEach(it=>out+=`- ${it.title}\n  ${it.link}\n`);
-    }
-    out+='\n';
-  }
-  // Agenda
-  if(snap?.agendaText){
-    out+=`AGENDA\n${'-'.repeat(20)}\n${snap.agendaText}\n\n`;
-  }
-  // Predictions
-  if(P.length){
-    out+=`PREDICTIONS\n${'-'.repeat(20)}\n`;
-    P.forEach(p=>out+=`[${p.wid}] [${p.h}] [${lbl[p.cat]}]${p.ai?' [AI]':''} ${p.t} → ${p.s||'unscored'}\n`);
-  }
-  const blob=new Blob([out],{type:'text/plain'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`psychohistory-${date}.txt`;
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
-  toast('Downloaded ✓');
-}
-// ── Init ───────────────────────────────────────────────────────
-const now=new Date();
-document.getElementById('hdate').textContent=now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-const savedKey=localStorage.getItem('psycho_key');
-if(savedKey)document.getElementById('api-key').value=savedKey;
-loadCache();renderNew();
-const lastFetch=FC[FEEDS[0]?.key]?.fetched;
-if(!lastFetch||(Date.now()-new Date(lastFetch).getTime())>86400000)fetchAll();
+render();
 </script>
 </body>
 </html>
