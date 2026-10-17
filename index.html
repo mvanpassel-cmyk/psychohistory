@@ -131,10 +131,23 @@ async function claude(system,user,max=2500){
       if(j.type==="content_block_delta"&&j.delta&&j.delta.type==="text_delta")out+=j.delta.text;
       if(j.type==="message_delta"&&j.delta&&j.delta.stop_reason)stop=j.delta.stop_reason;
       if(j.type==="error")throw new Error("API: "+(j.error&&j.error.message||"error"))}}
+  window._last={stop,out};
   if(!out.trim())throw new Error("Empty answer from the API (model "+model+", stop reason "+(stop||"none")+"). Try another model under Settings.");
   return out;
 }
-function jsonFrom(t,open,close){const a=t.indexOf(open),b=t.lastIndexOf(close);if(a<0||b<a)throw new Error("Could not read the answer as JSON. Try again.");return JSON.parse(t.slice(a,b+1))}
+function objsFrom(t){
+  t=t.replace(/```(?:json)?/g,"");const res=[];let d=0,st=-1,inS=false,esc=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(inS){if(esc)esc=false;else if(c==="\\")esc=true;else if(c==='"')inS=false;continue}
+    if(c==='"'){inS=true;continue}
+    if(c==="{"){if(d===0)st=i;d++}
+    else if(c==="}"&&d>0){d--;if(d===0&&st>=0){try{res.push(JSON.parse(t.slice(st,i+1)))}catch(e){}st=-1}}}
+  return res}
+function jsonFrom(t,open,close){
+  const o=objsFrom(t);
+  if(open==="{"){if(o.length)return o[0]}else if(o.length)return o;
+  const L=window._last||{};
+  throw new Error("Could not read the answer as JSON (stop reason: "+(L.stop||"unknown")+"). Start of the answer: "+String(t).slice(0,160).replace(/\s+/g," "))}
 
 /* ---------- helpers ---------- */
 function digest(){
@@ -231,8 +244,8 @@ async function generate(){
     const ev=upcoming(180).map(x=>`- ${x.start} ${x.title}`).join("\n")||"(none)";
     const have=S.qs.filter(isOpen).map(q=>"- "+q.q).join("\n")||"(none)";
     const sys="You are a forecaster in the style of the Good Judgment Project, working on global health and health diplomacy. You write sharp, checkable yes/no questions and give calibrated probabilities. You use the outside view first (base rates and reference classes), then adjust for specifics. Your own knowledge can be out of date: rely on the headlines and calendar given, and say so when you assume something. Answer with JSON only.";
-    const user=`Today is ${today()}.\n\nRecent headlines:\n${digest()}\n\nScheduled events in the next 6 months:\n${ev}\n\nOpen questions already tracked (do not repeat):\n${have}\n\nWrite 6 new forecasting questions: 2 that resolve within a month, 2 within three months, 2 within twelve months. Each must be binary, resolvable from public sources, specific about numbers, bodies and dates, and not nearly certain either way.\n\nReturn a JSON array. Each item has: "question", "criteria" (exact condition for yes, with the source to check), "category" (one of: ${Object.keys(CATS).join(", ")}), "due" (YYYY-MM-DD, after ${addDays(today(),6)}), "base_rate" (reference class and frequency, or "no good reference class"), "p" (integer 1 to 99), "reasoning" (two sentences), "would_change" (one sentence).`;
-    const out=await claude(sys,user,3500);
+    const user=`Today is ${today()}.\n\nRecent headlines:\n${digest()}\n\nScheduled events in the next 6 months:\n${ev}\n\nOpen questions already tracked (do not repeat):\n${have}\n\nWrite 6 new forecasting questions: 2 that resolve within a month, 2 within three months, 2 within twelve months. Each must be binary, resolvable from public sources, specific about numbers, bodies and dates, and not nearly certain either way.\n\nReturn only a JSON array, no text before or after it. Each item has: "question", "criteria" (exact condition for yes, with the source to check), "category" (one of: ${Object.keys(CATS).join(", ")}), "due" (YYYY-MM-DD, after ${addDays(today(),6)}), "base_rate" (reference class and frequency, or "no good reference class"), "p" (integer 1 to 99), "reasoning" (at most two short sentences), "would_change" (one sentence).`;
+    const out=await claude(sys,user,6000);
     SUGG=jsonFrom(out,"[","]").filter(x=>x&&x.question&&x.criteria&&x.due>today()).map(x=>({id:uid(),q:String(x.question),criteria:String(x.criteria),cat:CATS[x.category]?x.category:"other",due:String(x.due).slice(0,10),base:String(x.base_rate||""),pCl:Math.min(99,Math.max(1,Math.round(+x.p)||50)),why:String(x.reasoning||""),change:String(x.would_change||"")}));
     st.textContent=SUGG.length?"":"Claude returned no usable questions. Try again.";renderSugg();
   }catch(e){st.className="small err";st.textContent=e.message}
