@@ -197,7 +197,7 @@ function qCard(q,extra){
   return `<div class="card" data-id="${q.id}"><div class="q">${esc(q.q)}</div>
   <div class="meta"><span class="tag">${esc(CATS[q.cat]||q.cat)}</span>due ${fmtD(q.due)} · created ${fmtD(q.created)}${q.src==="claude"?" · suggested by Claude":""}</div>
   ${q.criteria?`<div class="small"><b>Resolves yes if:</b> ${esc(q.criteria)}</div>`:""}
-  <div class="row" style="margin:6px 0"><span class="pill">Me: <b>${pct(q.pMe)}</b></span><span class="pill">Claude: <b>${pct(q.pCl)}</b></span></div>
+  <div class="row" style="margin:6px 0"><span class="pill">Me: <b>${pct(q.pMe)}</b></span><span class="pill">Claude: <b>${pct(q.pCl)}</b></span>${q.pCrowd!=null?`<span class="pill">Crowd: <b>${pct(q.pCrowd)}</b>${q.crowdUrl?` <a href="${esc(q.crowdUrl)}" rel="noopener">${esc(q.crowdSite||"market")}</a>`:""}</span>`:""}</div>
   ${q.base?`<div class="small muted"><b>Base rate:</b> ${esc(q.base)}</div>`:""}
   ${q.why?`<div class="small muted"><b>Reasoning:</b> ${esc(q.why)}</div>`:""}
   ${q.change?`<div class="small muted"><b>Would change my mind:</b> ${esc(q.change)}</div>`:""}
@@ -208,10 +208,11 @@ function viewFc(){
   $("#view").innerHTML=`
   <div class="bar"><button class="btn pri" id="gen">Suggest questions with Claude</button><span id="genst" class="small muted"></span></div>
   <div id="sugg"></div>
-  <details class="card"><summary><b>Add your own forecast</b></summary>
+  <details class="card"${PENDING?" open":""}><summary><b>Add your own forecast</b></summary>
+    ${PENDING?`<div class="note">From ${esc(PENDING.site)}${PENDING.url?`: <a href="${esc(PENDING.url)}" rel="noopener">open the market</a> and read its resolution rules before you answer`:""}. The crowd's current probability is saved with your forecast and shown after you save, so it cannot anchor you.</div>`:""}
     <label class="f">Start from a template</label><select id="tpl"><option value="">Blank</option>${TEMPLATES.map((t,i)=>`<option value="${i}">${esc(t.t)}</option>`).join("")}</select>
     <label class="f">Question (yes/no, checkable)</label><textarea id="nq1"></textarea>
-    <label class="f">Resolves yes if… (write this now, so it cannot drift)</label><textarea id="nc1"></textarea>
+    <label class="f">Resolves yes if… (write this now, so it cannot drift)</label><textarea id="nc1" placeholder="${PENDING?"Restate the market's resolution condition in your own words":""}"></textarea>
     <div class="row"><div><label class="f">Category</label><select id="ncat">${Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div>
     <div><label class="f">Due date</label><input id="ndue" type="date" value="${addDays(today(),90)}" min="${addDays(today(),1)}"></div>
     <div><label class="f">My probability (1–99%)</label><input id="np" type="number" min="1" max="99" style="width:90px"></div></div>
@@ -225,8 +226,11 @@ function viewFc(){
   $("#save").onclick=()=>{
     const q=$("#nq1").value.trim(),c=$("#nc1").value.trim(),p=parseInt($("#np").value,10),due=$("#ndue").value;
     if(!q||!c||!due||!(p>=1&&p<=99)){$("#savest").className="small err";$("#savest").textContent="Fill in question, resolution criteria, due date and a probability from 1 to 99.";return}
-    S.qs.push({id:uid(),q,criteria:c,cat:$("#ncat").value,due,created:today(),pMe:p,pCl:null,base:$("#nb").value.trim(),src:"me",res:null});store.save();render();
+    const nq={id:uid(),q,criteria:c,cat:$("#ncat").value,due,created:today(),pMe:p,pCl:null,base:$("#nb").value.trim(),src:"me",res:null};
+    if(PENDING){nq.pCrowd=PENDING.crowd;nq.crowdUrl=PENDING.url;nq.crowdSite=PENDING.site;nq.crowdAt=today();PENDING=null}
+    S.qs.push(nq);store.save();render();
   };
+  if(PENDING){$("#nq1").value=PENDING.q;$("#ncat").value="outbreaks";$("#ndue").value=PENDING.due;setTimeout(()=>{const f=$("#np");if(f){f.focus();f.scrollIntoView({block:"center"})}},50)}
   bindActions();renderSugg();
 }
 function bindActions(){
@@ -321,16 +325,17 @@ function chart(bins){
 }
 function viewScores(){
   const res=S.qs.filter(q=>q.res==="yes"||q.res==="no");
-  const bm=brier(res,"pMe"),bc=brier(res,"pCl");
+  const bm=brier(res,"pMe"),bc=brier(res,"pCl"),bw=brier(res,"pCrowd");
+  const bothC=res.filter(q=>q.pMe!=null&&q.pCrowd!=null);
   const both=res.filter(q=>q.pMe!=null&&q.pCl!=null);
-  const byCat=Object.keys(CATS).map(k=>{const a=res.filter(q=>q.cat===k);return a.length?`<tr><td>${esc(CATS[k])}</td><td class="n">${a.length}</td><td class="n">${f3(brier(a,"pMe"))}</td><td class="n">${f3(brier(a,"pCl"))}</td></tr>`:""}).join("");
+  const byCat=Object.keys(CATS).map(k=>{const a=res.filter(q=>q.cat===k);return a.length?`<tr><td>${esc(CATS[k])}</td><td class="n">${a.length}</td><td class="n">${f3(brier(a,"pMe"))}</td><td class="n">${f3(brier(a,"pCl"))}</td><td class="n">${f3(brier(a,"pCrowd"))}</td></tr>`:""}).join("");
   const sel=window._cal||"pMe";
   $("#view").innerHTML=`<p class="lead">Brier score: the mean squared gap between your probability and what happened (1 = yes, 0 = no). Lower is better. Always saying 50% scores 0.250.</p>
-  <div class="grid"><div class="stat"><b>${S.qs.length}</b>forecasts</div><div class="stat"><b>${res.length}</b>resolved (yes/no)</div><div class="stat"><b>${f3(bm)}</b>Brier, me</div><div class="stat"><b>${f3(bc)}</b>Brier, Claude</div><div class="stat"><b>${f3(brier(both,"pMe"))} / ${f3(brier(both,"pCl"))}</b>me / Claude on the ${both.length} both answered</div></div>
+  <div class="grid"><div class="stat"><b>${S.qs.length}</b>forecasts</div><div class="stat"><b>${res.length}</b>resolved (yes/no)</div><div class="stat"><b>${f3(bm)}</b>Brier, me</div><div class="stat"><b>${f3(bc)}</b>Brier, Claude</div>${bw!=null?`<div class="stat"><b>${f3(bw)}</b>Brier, crowd</div><div class="stat"><b>${f3(brier(bothC,"pMe"))} / ${f3(brier(bothC,"pCrowd"))}</b>me / crowd on the ${bothC.length} both</div>`:""}<div class="stat"><b>${f3(brier(both,"pMe"))} / ${f3(brier(both,"pCl"))}</b>me / Claude on the ${both.length} both answered</div></div>
   ${res.length<10?`<div class="note">With fewer than about 10 resolved forecasts these numbers say little. Keep going.</div>`:""}
-  <h2>Calibration</h2><div class="bar"><select id="cs"><option value="pMe" ${sel==="pMe"?"selected":""}>Me</option><option value="pCl" ${sel==="pCl"?"selected":""}>Claude</option></select><span class="small muted">On the diagonal means well calibrated. Dot size is the number of forecasts.</span></div>
+  <h2>Calibration</h2><div class="bar"><select id="cs"><option value="pMe" ${sel==="pMe"?"selected":""}>Me</option><option value="pCl" ${sel==="pCl"?"selected":""}>Claude</option><option value="pCrowd" ${sel==="pCrowd"?"selected":""}>Crowd</option></select><span class="small muted">On the diagonal means well calibrated. Dot size is the number of forecasts.</span></div>
   ${chart(calib(res,sel))}
-  <h2>By category</h2>${byCat?`<table><thead><tr><th>Category</th><th class="n">Resolved</th><th class="n">Me</th><th class="n">Claude</th></tr></thead><tbody>${byCat}</tbody></table>`:'<p class="muted">Nothing resolved yet.</p>'}`;
+  <h2>By category</h2>${byCat?`<table><thead><tr><th>Category</th><th class="n">Resolved</th><th class="n">Me</th><th class="n">Claude</th><th class="n">Crowd</th></tr></thead><tbody>${byCat}</tbody></table>`:'<p class="muted">Nothing resolved yet.</p>'}`;
   $("#cs").onchange=e=>{window._cal=e.target.value;viewScores()};
 }
 function viewSettings(){
@@ -352,6 +357,20 @@ function viewSettings(){
   $("#imp").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!Array.isArray(j.qs))throw new Error("no forecasts found");const ids=new Set(S.qs.map(q=>q.id));let n=0;j.qs.forEach(q=>{if(q&&q.id&&q.q&&!ids.has(q.id)){S.qs.push(q);n++}});store.save();$("#setst").textContent=n+" forecasts imported."}catch(err){$("#setst").className="small err";$("#setst").textContent="Import failed: "+err.message}};
   $("#clr").onclick=()=>{if(confirm("Delete all forecasts from this browser?")){S={qs:[]};store.save();render()}};
 }
+/* ---------- hand-off from Wisdom of the Crows ---------- */
+let PENDING=null;
+(function(){
+  try{
+    const u=new URLSearchParams(location.search),c=parseFloat(u.get("crowd"));
+    if(u.get("q")&&c>=0&&c<=100){
+      let due=(u.get("due")||"").slice(0,10);
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(due)||due<addDays(today(),1))due=addDays(today(),90);
+      const src=u.get("src")||"";
+      PENDING={q:u.get("q").slice(0,300),due,crowd:Math.round(c),url:/^https:\/\//.test(src)?src:"",site:(u.get("site")||"market").slice(0,40)};
+      tab="fc";history.replaceState(null,"",location.pathname);
+    }
+  }catch(e){}
+})();
 render();
 </script>
 </body>
