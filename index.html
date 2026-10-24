@@ -359,6 +359,8 @@ function viewSettings(){
 }
 /* ---------- hand-off from Wisdom of the Crows ---------- */
 let PENDING=null;
+/* open where the work is: review if something is due, else your forecasts */
+if(S.qs.some(isDue))tab="rev";else if(S.qs.some(isOpen))tab="fc";
 (function(){
   try{
     const u=new URLSearchParams(location.search),c=parseFloat(u.get("crowd"));
