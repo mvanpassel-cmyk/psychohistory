@@ -65,13 +65,13 @@ footer{margin-top:36px;color:var(--muted);font-size:13px}
 <div id="banner"></div>
 <nav role="tablist" id="tabs"></nav>
 <div id="view"></div>
-<footer>News comes from the GH Ribbon feeds, refreshed hourly. Forecasts are stored only in this browser; use Export to keep a copy. Claude's forecasts rest on headlines and its own knowledge, which can be outdated: treat them as a second opinion to be scored, not as an answer.</footer>
+<footer>News comes from the GH Ribbon feeds, refreshed hourly. Forecasts are stored in this browser; connect a GitHub gist under Settings to keep them safe and use them on other devices. Claude's forecasts rest on headlines and its own knowledge, which can be outdated: treat them as a second opinion to be scored, not as an answer.</footer>
 </div>
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const RIBBON="https://mvanpassel-cmyk.github.io/gh-ribbon/";
-const FEEDS_URL=RIBBON+"data/feeds.json", EVENTS_URL=RIBBON+"world-calendar/events.json", ARCHIVE_URL=RIBBON+"data/archive.csv";
+const FEEDS_URL=RIBBON+"data/feeds.json", EVENTS_URL=RIBBON+"world-calendar/events.json", ARCHIVE_INDEX=RIBBON+"data/archive/index.json";
 const CATS={outbreaks:"Outbreaks and emergencies",governance:"WHO and pandemic agreement",amr:"AMR",eu:"EU and Dutch health policy",funding:"Funding and global health architecture",rd:"Vaccines, medicines and R&D",other:"Other"};
 const NEWSCATS={"":"All",who:"WHO and UN",emerg:"Emergencies",global:"Global health",policy:"Policy",amr:"AMR",journal:"Journals",news:"News",promed:"Outbreak reports"};
 const MODELS={"claude-haiku-4-5-20251001":"Claude Haiku 4.5 (fast)","claude-sonnet-5-5":"Claude Sonnet 5.5 (better reasoning)","claude-opus-5-5":"Claude Opus 5.5 (best, slowest)"};
@@ -82,12 +82,88 @@ const TEMPLATES=[
 ];
 const store={
  load(){try{const s=JSON.parse(localStorage.getItem("psy2")||"null");if(s&&Array.isArray(s.qs))return s}catch(e){}return{qs:[]}},
- save(){try{localStorage.setItem("psy2",JSON.stringify(S))}catch(e){}},
+ save(){stamp();this.saveLocal();sync.schedule()},
+ saveLocal(){try{localStorage.setItem("psy2",JSON.stringify(S))}catch(e){}},
  get(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}},
  set(k,v){try{localStorage.setItem(k,v)}catch(e){}},
  del(k){try{localStorage.removeItem(k)}catch(e){}}
 };
 let S=store.load();
+
+/* ---------- change stamps ----------
+   Each forecast gets "mt" (modified time) when it changes, and removed ones leave a
+   tombstone in S.del, so two devices can be merged without losing or resurrecting anything. */
+let LASTHASH={};
+const hashQ=q=>{const {mt,...r}=q;return JSON.stringify(r)};
+function resetHashes(){LASTHASH={};S.qs.forEach(q=>{if(q&&q.id)LASTHASH[q.id]=hashQ(q)})}
+function stamp(){
+  const now=new Date().toISOString(),seen=new Set();S.del=S.del||{};
+  S.qs.forEach(q=>{if(!q||!q.id)return;seen.add(q.id);const h=hashQ(q);if(LASTHASH[q.id]!==h){q.mt=now;LASTHASH[q.id]=h}});
+  Object.keys(LASTHASH).forEach(id=>{if(!seen.has(id)){S.del[id]=now;delete LASTHASH[id]}});
+}
+resetHashes();
+function mergeState(local,remote){
+  const del=Object.assign({},remote.del||{});
+  Object.entries(local.del||{}).forEach(([id,t])=>{if(!del[id]||t>del[id])del[id]=t});
+  const by={};
+  (remote.qs||[]).forEach(q=>{if(q&&q.id)by[q.id]=q});
+  (local.qs||[]).forEach(q=>{if(!q||!q.id)return;const o=by[q.id];if(!o||(q.mt||"")>=(o.mt||""))by[q.id]=q});
+  const qs=Object.values(by).filter(q=>!(del[q.id]&&del[q.id]>=(q.mt||"")));
+  return Object.assign({},remote,local,{qs,del});
+}
+
+/* ---------- optional sync to a GitHub gist ----------
+   Keeps forecasts safe from Safari clearing site data, and shares them between devices.
+   The token needs gist access only. Like the API key it is kept for this tab unless
+   "Remember" is ticked. A secret gist is unlisted, not private: anyone with its link can read it. */
+const GIST_FILE="psychohistory.json",GIST_DESC="Psychohistory forecasts (synced from mvanpassel-cmyk.github.io/psychohistory)";
+const sessTok={get(){try{return sessionStorage.getItem("psy2_gh")||""}catch(e){return""}},set(v){try{v?sessionStorage.setItem("psy2_gh",v):sessionStorage.removeItem("psy2_gh")}catch(e){}}};
+const sync={
+  status:"",timer:null,busy:false,
+  token(){return sessTok.get()||store.get("psy2_gh","")},
+  setToken(v,remember){sessTok.set(remember?"":v);if(remember&&v)store.set("psy2_gh",v);else store.del("psy2_gh")},
+  async api(path,opt={}){
+    const h={"Accept":"application/vnd.github+json","Authorization":"Bearer "+this.token(),"X-GitHub-Api-Version":"2022-11-28"};
+    if(opt.body)h["Content-Type"]="application/json";
+    const r=await fetch("https://api.github.com"+path,Object.assign({},opt,{headers:h}));
+    if(!r.ok){let m="";try{m=(await r.json()).message||""}catch(e){}throw new Error("GitHub "+r.status+(m?": "+m:""))}
+    return r.json();
+  },
+  async gistId(){
+    let id=store.get("psy2_gist","");if(id)return id;
+    for(let page=1;page<=3;page++){
+      const l=await this.api("/gists?per_page=100&page="+page);
+      const g=l.find(x=>x.files&&x.files[GIST_FILE]);if(g){store.set("psy2_gist",g.id);return g.id}
+      if(l.length<100)break;
+    }
+    return "";
+  },
+  async pull(id){
+    const g=await this.api("/gists/"+id);const f=g.files&&g.files[GIST_FILE];if(!f)return null;
+    let txt=f.content;if(f.truncated)txt=await (await fetch(f.raw_url)).text();
+    try{const j=JSON.parse(txt);return j&&Array.isArray(j.qs)?j:null}catch(e){return null}
+  },
+  // Pull, merge, push if anything differs. Returns true when local forecasts changed.
+  async run(){
+    if(!this.token()||this.busy)return false;this.busy=true;let changed=false;
+    try{
+      const id=await this.gistId();const remote=id?await this.pull(id):null;
+      const before=JSON.stringify(S.qs);
+      if(remote)S=mergeState(S,remote);
+      changed=JSON.stringify(S.qs)!==before;
+      this.saveMerged();
+      const content=JSON.stringify(S,null,1);
+      if(!id){const g=await this.api("/gists",{method:"POST",body:JSON.stringify({description:GIST_DESC,public:false,files:{[GIST_FILE]:{content}}})});store.set("psy2_gist",g.id)}
+      else if(!remote||JSON.stringify(remote)!==JSON.stringify(S))await this.api("/gists/"+id,{method:"PATCH",body:JSON.stringify({files:{[GIST_FILE]:{content}}})});
+      store.set("psy2_synced",new Date().toISOString());
+      this.status="Synced "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+", "+S.qs.length+" forecast"+(S.qs.length===1?"":"s")+".";
+    }catch(e){this.status="Sync failed: "+e.message}
+    finally{this.busy=false;const el=$("#syncst");if(el)el.textContent=this.status}
+    return changed;
+  },
+  saveMerged(){resetHashes();store.saveLocal()},
+  schedule(){if(!this.token())return;clearTimeout(this.timer);this.timer=setTimeout(()=>this.run().then(c=>{if(c)render()}),2000)}
+};
 let NEWS=null,EVENTS=null,ARCH=null,SUGG=[],tab="news",newsCat="",newsQ="";
 const today=()=>new Date().toISOString().slice(0,10);
 const addDays=(d,n)=>{const x=new Date(d+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10)};
@@ -114,7 +190,10 @@ function parseCSV(t){
 }
 async function loadArchive(){
   if(ARCH) return ARCH;
-  try{const r=await fetch(ARCHIVE_URL);if(!r.ok)throw new Error(r.status);ARCH=parseCSV(await r.text()).map(x=>({title:x.titel,url:x.url,src:x.bron,date:(x.gepubliceerd||x.datum_gezien||"").slice(0,10),seen:x.datum_gezien}))}
+  // The ribbon keeps one CSV per month; the newest month changes, older ones do not.
+  try{const r=await fetch(ARCHIVE_INDEX,{cache:"no-store"});if(!r.ok)throw new Error(r.status);const idx=await r.json();
+    const texts=await Promise.all((idx.months||[]).map((m,i)=>fetch(RIBBON+"data/archive/"+m.file+(i===0?"?t="+Date.now():"")).then(x=>x.ok?x.text():"").catch(()=>"")));
+    ARCH=texts.flatMap(t=>t?parseCSV(t):[]).map(x=>({title:x.title||x.titel,url:x.url,src:x.source||x.bron,date:(x.published||x.gepubliceerd||x.seen_date||x.datum_gezien||"").slice(0,10),seen:x.seen_date||x.datum_gezien}))}
   catch(e){ARCH=[]}
   return ARCH;
 }
@@ -349,8 +428,17 @@ function viewScores(){
 function viewSettings(){
   $("#view").innerHTML=`<h2>Claude API key</h2><p class="small muted">Needed for suggestions and for checking outcomes. The key, and the questions and headlines in each request, go only to Anthropic; each request uses your API credit. By default the key is forgotten when you close this tab. Tick “Remember” to keep it in this browser (convenient, but readable by any script on this domain).</p>
   <div class="bar"><input id="key" type="password" placeholder="sk-ant-…" style="min-width:260px" value="${esc(getKey())}"><label class="small"><input type="checkbox" id="krem" ${store.get("psy2_key","")?"checked":""}> Remember on this device</label><select id="mdl">${Object.entries(MODELS).map(([k,v])=>`<option value="${k}" ${k===store.get("psy2_model","claude-haiku-4-5-20251001")?"selected":""}>${v}</option>`).join("")}</select><button class="btn pri" id="ktest">Save and test</button></div><div id="kst" class="small" style="min-height:1.4em"></div>
+  <h2>Sync across devices</h2><p class="small muted">Optional, and recommended on an iPhone: Safari clears a site's storage after about a week without a visit. Sync keeps your forecasts in a secret GitHub gist and follows you to other devices. Use a token that can only touch gists: a fine-grained token with Account permissions → Gists: read and write, or a classic token with only the <code>gist</code> scope. A secret gist is unlisted, not private: anyone with its link can read it.</p>
+  <div class="bar"><input id="ghtok" type="password" placeholder="github_pat_…" style="min-width:260px" value="${esc(sync.token())}"><label class="small"><input type="checkbox" id="ghrem" ${store.get("psy2_gh","")?"checked":""}> Remember on this device</label><button class="btn pri" id="ghsync">Connect and sync</button><button class="btn" id="ghoff">Disconnect</button></div>
+  <div id="syncst" class="small" style="min-height:1.4em">${esc(sync.status||(store.get("psy2_gist","")?"Connected to gist "+store.get("psy2_gist",""):"Not connected."))}</div>
   <h2>Your data</h2><div class="bar"><button class="btn" id="exp">Export JSON</button><label class="btn">Import JSON<input id="imp" type="file" accept=".json" class="hidden"></label><button class="btn" id="clr">Delete everything</button></div><div id="setst" class="small"></div>
-  <div class="note">Forecasts live only in this browser. Export a copy now and then; clearing site data deletes them.</div>`;
+  <div class="note">${sync.token()?"Forecasts are kept in this browser and synced to your gist.":"Forecasts live only in this browser. Connect a gist above, or export a copy now and then; clearing site data deletes them."}</div>`;
+  $("#ghtok").oninput=e=>sync.setToken(e.target.value.trim(),$("#ghrem").checked);
+  $("#ghrem").onchange=e=>sync.setToken($("#ghtok").value.trim(),e.target.checked);
+  $("#ghsync").onclick=async()=>{sync.setToken($("#ghtok").value.trim(),$("#ghrem").checked);
+    if(!sync.token()){$("#syncst").textContent="Paste a token first.";return}
+    $("#syncst").textContent="Syncing…";const c=await sync.run();if(c)render()};
+  $("#ghoff").onclick=()=>{sync.setToken("",false);store.del("psy2_gist");sync.status="Disconnected. Forecasts stay in this browser; the gist is left as it is.";viewSettings()};
   $("#key").oninput=e=>setKey(e.target.value.trim(),$("#krem").checked);
   $("#krem").onchange=e=>setKey($("#key").value.trim(),e.target.checked);
   $("#mdl").onchange=e=>store.set("psy2_model",e.target.value);
@@ -364,7 +452,7 @@ function viewSettings(){
   $("#key").onkeydown=e=>{if(e.key==="Enter")testKey()};
   $("#exp").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:"application/json"}));a.download="psychohistory-"+today()+".json";a.click()};
   $("#imp").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!Array.isArray(j.qs))throw new Error("no forecasts found");const ids=new Set(S.qs.map(q=>q.id));let n=0;j.qs.forEach(q=>{if(q&&q.id&&q.q&&!ids.has(q.id)){S.qs.push(q);n++}});store.save();$("#setst").textContent=n+" forecasts imported."}catch(err){$("#setst").className="small err";$("#setst").textContent="Import failed: "+err.message}};
-  $("#clr").onclick=()=>{if(confirm("Delete all forecasts from this browser?")){S={qs:[]};store.save();render()}};
+  $("#clr").onclick=()=>{if(confirm(sync.token()?"Delete all forecasts, here and in your synced gist?":"Delete all forecasts from this browser?")){S={qs:[],del:S.del||{}};store.save();render()}};
 }
 /* ---------- hand-off from Wisdom of the Crows ---------- */
 let PENDING=null;
@@ -383,6 +471,9 @@ if(S.qs.some(isDue))tab="rev";else if(S.qs.some(isOpen))tab="fc";
   }catch(e){}
 })();
 render();
+resetHashes();
+if(sync.token())sync.run().then(c=>{if(c)render()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&sync.token())sync.run().then(c=>{if(c)render()})});
 </script>
 <!-- bezoekersteller: GoatCounter, zonder cookies -->
 <script data-goatcounter="https://mvanpassel.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
